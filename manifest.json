@@ -1,0 +1,27 @@
+{
+  "name": "Octavo Cielo — Astrología Electiva",
+  "short_name": "Octavo Cielo",
+  "description": "Encontrá el mejor momento para tus intenciones según los astros",
+  "start_url": "/octavo-cielo-electiva.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080c1a",
+  "theme_color": "#080c1a",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "education"],
+  "screenshots": []
+}
