@@ -513,6 +513,67 @@
     color: var(--text-dim);
     margin-top: 8px;
   }
+  .paywall-price {
+    font-family: 'Cinzel', serif;
+    font-size: 24px;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .paywall-price-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+  }
+  .paywall-divider {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin: 22px 0 12px;
+    text-transform: uppercase;
+  }
+  .paywall-code-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 6px;
+  }
+  .paywall-code-input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--silver);
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    outline: none;
+  }
+  .paywall-code-input::placeholder { color: var(--text-dim); }
+  .paywall-code-btn {
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .paywall-code-btn:hover { background: rgba(201,168,76,0.22); }
+  .paywall-code-error { font-size: 11px; color: #e07878; min-height: 16px; margin-bottom: 4px; }
+  .paywall-link {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 14px;
+    text-decoration: none;
+  }
+  .paywall-link:hover { color: var(--gold-light); }
 
   /* New chat button */
   .new-chat-btn {
@@ -694,14 +755,22 @@
 
     <!-- Paywall overlay -->
     <div class="paywall" id="paywall">
-      <div class="paywall-icon">✦</div>
-      <div class="paywall-title">Tus 3 consultas se completaron</div>
+      <div class="paywall-icon">&#x1F319;</div>
+      <div class="paywall-title">Tus 3 consultas gratuitas se completaron</div>
       <div class="paywall-text">
-        El cielo tiene mucho más para mostrarte.<br>
-        Explorá los servicios de Octavo Cielo y encontrá el acompañamiento que tu alma necesita.
+        El Oráculo tiene mucho más para revelar.<br>
+        Suscribite y consultá sin límites, cuando el cielo lo pida.
       </div>
-      <a class="paywall-btn" href="https://octavocielo.netlify.app/#servicios" target="_blank">✦ CONOCER LOS SERVICIOS</a>
-      <div class="paywall-sub">Consultas astrológicas · Reiki · Cristales</div>
+      <div class="paywall-price">$8.000 ARS / mes</div>
+      <div class="paywall-price-sub">Acceso ilimitado &middot; Cancelás cuando quieras</div>
+      <a class="paywall-btn" href="https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=1feb1cfc0a8c4df195195c1d7f4f8112" target="_blank">✦ SUSCRIBIRME AL ORÁCULO</a>
+      <div class="paywall-divider">¿Ya tenés suscripción?</div>
+      <div class="paywall-code-row">
+        <input type="text" id="codigoInput" class="paywall-code-input" placeholder="Ingresá tu código de acceso">
+        <button class="paywall-code-btn" onclick="activarCodigo()">Activar</button>
+      </div>
+      <div id="codigoError" class="paywall-code-error"></div>
+      <a class="paywall-link" href="https://octavocielo.netlify.app/#servicios" target="_blank">Ver servicios de Octavo Cielo</a>
     </div>
 
     <div class="chat-messages" id="chatMessages">
@@ -937,6 +1006,28 @@ let isLoading = false;
 let generalScore = null;
 
 // ═══════════════════════════════════════════════
+
+// CODIGO DE ACCESO SUSCRIPTORAS
+const CODIGO_VALIDO = 'ORACULO2026'; // Cambialo cada mes desde GitHub
+const STORAGE_KEY_SUB = 'oc_suscripta';
+
+function isSubscribed() {
+  return localStorage.getItem(STORAGE_KEY_SUB) === '1';
+}
+
+function activarCodigo() {
+  const input = document.getElementById('codigoInput').value.trim().toUpperCase();
+  const errorEl = document.getElementById('codigoError');
+  if (input === CODIGO_VALIDO) {
+    localStorage.setItem(STORAGE_KEY_SUB, '1');
+    document.getElementById('paywall').classList.remove('show');
+    document.getElementById('sendBtn').disabled = false;
+    errorEl.textContent = '';
+  } else {
+    errorEl.textContent = 'Código incorrecto. Revisá el email que recibiste al suscribirte.';
+  }
+}
+
 // CONSULTAS LIMIT
 // ═══════════════════════════════════════════════
 
@@ -962,7 +1053,7 @@ function renderCounter() {
     `<div class="consultas-dot${i < used ? ' used' : ''}"></div>`
   ).join('');
   // Show paywall if limit reached
-  if (used >= LIMIT) showPaywall();
+  if (used >= LIMIT && !isSubscribed()) showPaywall();
 }
 
 function showPaywall() {
@@ -1258,7 +1349,7 @@ async function sendMessage() {
   if (!msg || isLoading) return;
 
   // Check limit
-  if (getUsed() >= LIMIT) { showPaywall(); return; }
+  if (getUsed() >= LIMIT && !isSubscribed()) { showPaywall(); return; }
 
   isLoading = true;
   document.getElementById('sendBtn').disabled = true;
@@ -1293,7 +1384,7 @@ async function sendMessage() {
   }
 
   isLoading = false;
-  if (getUsed() < LIMIT) document.getElementById('sendBtn').disabled = false;
+  if (getUsed() < LIMIT || isSubscribed()) document.getElementById('sendBtn').disabled = false;
 }
 
 function quickPrompt(text) {
