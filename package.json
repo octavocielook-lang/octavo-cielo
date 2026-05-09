@@ -1,0 +1,8 @@
+{
+  "name": "octavo-cielo",
+  "version": "1.0.0",
+  "description": "Octavo Cielo — Netlify Functions",
+  "dependencies": {
+    "nodemailer": "^6.9.0"
+  }
+}
