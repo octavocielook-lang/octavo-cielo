@@ -82,6 +82,7 @@
     grid-template-columns: 260px 1fr 240px;
     grid-template-rows: 60px 1fr;
     height: 100vh;
+    overflow: hidden;
     gap: 0;
   }
 
@@ -117,6 +118,7 @@
     overflow-y: auto;
     padding: 20px 16px;
     display: flex; flex-direction: column; gap: 16px;
+    min-height: 0;
   }
   .panel-sky::-webkit-scrollbar { width: 3px; }
   .panel-sky::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
@@ -206,6 +208,7 @@
     display: flex; flex-direction: column;
     background: rgba(8,12,26,0.4);
     backdrop-filter: blur(6px);
+    min-height: 0;
   }
 
   .chat-messages {
@@ -355,6 +358,7 @@
     overflow-y: auto;
     padding: 20px 16px;
     display: flex; flex-direction: column; gap: 16px;
+    min-height: 0;
   }
   .panel-summary::-webkit-scrollbar { width: 3px; }
   .panel-summary::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
@@ -1031,29 +1035,74 @@ function activarCodigo() {
 // CONSULTAS LIMIT
 // ═══════════════════════════════════════════════
 
-const LIMIT = 3;
+const FREE_LIMIT = 3;
+const SUB_LIMIT = 100;
 const STORAGE_KEY = 'oc_consultas_used';
+const STORAGE_KEY_SUB_USED = 'oc_sub_used';
+const STORAGE_KEY_SUB_MONTH = 'oc_sub_month';
 
 function getUsed() {
   return parseInt(localStorage.getItem(STORAGE_KEY) || '0');
 }
 
 function incrementUsed() {
-  const used = getUsed() + 1;
-  localStorage.setItem(STORAGE_KEY, used);
-  return used;
+  if (isSubscribed()) {
+    const used = getSubUsed() + 1;
+    localStorage.setItem(STORAGE_KEY_SUB_USED, used);
+    return used;
+  } else {
+    const used = getUsed() + 1;
+    localStorage.setItem(STORAGE_KEY, used);
+    return used;
+  }
+}
+
+// Uso mensual para suscriptores (se resetea cada mes)
+function getSubUsed() {
+  const currentMonth = new Date().toISOString().slice(0, 7); // "2026-05"
+  const storedMonth = localStorage.getItem(STORAGE_KEY_SUB_MONTH);
+  if (storedMonth !== currentMonth) {
+    localStorage.setItem(STORAGE_KEY_SUB_USED, '0');
+    localStorage.setItem(STORAGE_KEY_SUB_MONTH, currentMonth);
+    return 0;
+  }
+  return parseInt(localStorage.getItem(STORAGE_KEY_SUB_USED) || '0');
 }
 
 function renderCounter() {
-  const used = getUsed();
-  const remaining = Math.max(0, LIMIT - used);
   const dots = document.getElementById('consultasDots');
   if (!dots) return;
-  dots.innerHTML = Array.from({length: LIMIT}, (_, i) =>
-    `<div class="consultas-dot${i < used ? ' used' : ''}"></div>`
-  ).join('');
-  // Show paywall if limit reached
-  if (used >= LIMIT && !isSubscribed()) showPaywall();
+
+  if (isSubscribed()) {
+    const used = getSubUsed();
+    const remaining = Math.max(0, SUB_LIMIT - used);
+    if (remaining > 0) {
+      dots.innerHTML = `<span style="font-size:11px;color:var(--text-dim);font-family:'Jost';letter-spacing:0.5px;">✦ ${remaining}/100 este mes</span>`;
+    } else {
+      dots.innerHTML = `<span style="font-size:11px;color:var(--accent-red);font-family:'Jost';letter-spacing:0.5px;">✦ 0/100 este mes</span>`;
+      showSubLimitMsg();
+    }
+  } else {
+    const used = getUsed();
+    const LIMIT = FREE_LIMIT;
+    dots.innerHTML = Array.from({length: LIMIT}, (_, i) =>
+      `<div class="consultas-dot${i < used ? ' used' : ''}"></div>`
+    ).join('');
+    if (used >= LIMIT) showPaywall();
+  }
+}
+
+function showSubLimitMsg() {
+  // Calcular primer día del próximo mes
+  const now = new Date();
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const opts = { day: 'numeric', month: 'long' };
+  const renewal = nextMonth.toLocaleDateString('es-AR', opts);
+  document.getElementById('chatInput').disabled = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.querySelectorAll('.quick-btn').forEach(b => b.disabled = true);
+  // Mostrar mensaje en el chat
+  appendMsg('ai', `🌙 Llegaste a tus 100 consultas de este mes. Tus créditos se renuevan automáticamente el ${renewal}. ¡Hasta entonces, que los astros te guíen!`);
 }
 
 function showPaywall() {
@@ -1349,7 +1398,8 @@ async function sendMessage() {
   if (!msg || isLoading) return;
 
   // Check limit
-  if (getUsed() >= LIMIT && !isSubscribed()) { showPaywall(); return; }
+  if (!isSubscribed() && getUsed() >= FREE_LIMIT) { showPaywall(); return; }
+  if (isSubscribed() && getSubUsed() >= SUB_LIMIT) { showSubLimitMsg(); return; }
 
   isLoading = true;
   document.getElementById('sendBtn').disabled = true;
@@ -1384,7 +1434,9 @@ async function sendMessage() {
   }
 
   isLoading = false;
-  if (getUsed() < LIMIT || isSubscribed()) document.getElementById('sendBtn').disabled = false;
+  const belowFreeLimit = !isSubscribed() && getUsed() < FREE_LIMIT;
+  const belowSubLimit = isSubscribed() && getSubUsed() < SUB_LIMIT;
+  if (belowFreeLimit || belowSubLimit) document.getElementById('sendBtn').disabled = false;
 }
 
 function quickPrompt(text) {
