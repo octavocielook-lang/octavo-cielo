@@ -216,6 +216,8 @@ footer{border-top:1px solid rgba(196,181,232,.1);padding:3rem 4rem;display:flex;
 .footer-logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.2rem;font-weight:300;color:var(--gold-light);letter-spacing:.1em;}
 .footer-phrase{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(196,181,232,.4);font-weight:300;}
 .footer-copy{font-size:.72rem;color:rgba(196,181,232,.3);font-weight:300;}
+.footer-link{font-size:.72rem;color:rgba(196,181,232,.3);font-weight:300;text-decoration:none;transition:color .3s;}
+.footer-link:hover{color:rgba(196,181,232,.7);}
 
 /* RESPONSIVE */
 @media(max-width:768px){
@@ -624,9 +626,9 @@ footer{border-top:1px solid rgba(196,181,232,.1);padding:3rem 4rem;display:flex;
         <span class="contact-item-icon">📱</span>
         <div><span class="contact-item-label">WhatsApp</span><span class="contact-item-value">Escribime para consultas</span></div>
       </a>
-      <a href="mailto:hola@octavocielo.com.ar" class="contact-item">
+      <a href="mailto:octavocielook@gmail.com" class="contact-item">
         <span class="contact-item-icon">✉️</span>
-        <div><span class="contact-item-label">Email</span><span class="contact-item-value">hola@octavocielo.com.ar</span></div>
+        <div><span class="contact-item-label">Email</span><span class="contact-item-value">octavocielook@gmail.com</span></div>
       </a>
     </div>
     <a href="#reservar" class="btn-primary" style="width:100%;text-align:center;display:block;">Reservar mi sesión ✦</a>
@@ -637,7 +639,10 @@ footer{border-top:1px solid rgba(196,181,232,.1);padding:3rem 4rem;display:flex;
 <footer>
   <span class="footer-logo">Octavo Cielo</span>
   <span class="footer-phrase">✦ Donde el alma se alinea con el cosmos ✦</span>
-  <span class="footer-copy">© 2026 Octavo Cielo</span>
+  <div style="display:flex;gap:1.5rem;align-items:center;">
+    <a href="/privacidad" class="footer-link">Política de privacidad</a>
+    <span class="footer-copy">© 2026 Octavo Cielo</span>
+  </div>
 </footer>
 
 <script>
