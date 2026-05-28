@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de Privacidad | Octavo Cielo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--deep-night:#0d0d1a;--indigo:#1e1e4a;--violet:#6b5b9e;--lavender:#c4b5e8;--rose-quartz:#e8cdd7;--gold:#c9a96e;--gold-light:#e8d5a8;--mist:#f4f0f8;--white:#fdfcff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Jost','Segoe UI',Arial,sans-serif;background:var(--deep-night);color:var(--mist);overflow-x:hidden;min-height:100vh;}
+.stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;background:white;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite alternate;opacity:var(--o,.5);}
+@keyframes twinkle{from{opacity:var(--o);transform:scale(1);}to{opacity:calc(var(--o)*0.3);transform:scale(0.7);}}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.5rem 4rem;background:linear-gradient(to bottom,rgba(13,13,26,.95),transparent);backdrop-filter:blur(4px);}
+.nav-logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.4rem;font-weight:300;letter-spacing:.15em;color:var(--gold-light);text-decoration:none;}
+.nav-logo span{color:var(--lavender);}
+.nav-back{color:var(--lavender);text-decoration:none;font-size:.78rem;font-weight:300;letter-spacing:.2em;text-transform:uppercase;transition:color .3s;display:flex;align-items:center;gap:.5rem;}
+.nav-back:hover{color:var(--gold-light);}
+
+.page-wrapper{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:10rem 4rem 8rem;}
+
+.page-header{text-align:center;margin-bottom:4rem;}
+.page-eyebrow{font-size:.7rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);font-weight:300;display:block;margin-bottom:1rem;}
+.page-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(2.2rem,5vw,3.5rem);font-weight:300;color:var(--white);line-height:1.2;margin-bottom:.8rem;}
+.page-title em{color:var(--lavender);font-style:italic;}
+.page-subtitle{font-family:'Cormorant Garamond',Georgia,serif;font-size:1rem;font-style:italic;color:rgba(196,181,232,.5);font-weight:300;}
+.page-updated{font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(201,169,110,.5);font-weight:300;margin-top:1rem;display:block;}
+
+.policy-card{background:linear-gradient(135deg,rgba(30,30,74,.5),rgba(13,13,26,.8));border:1px solid rgba(196,181,232,.1);border-radius:2px;padding:3rem;}
+
+.policy-section{margin-bottom:2.5rem;}
+.policy-section:last-child{margin-bottom:0;}
+
+.policy-h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.6rem;font-weight:300;color:var(--white);margin-bottom:1rem;padding-bottom:.6rem;border-bottom:1px solid rgba(201,169,110,.2);display:flex;align-items:baseline;gap:.8rem;}
+.policy-h1 .num{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-family:'Jost',sans-serif;font-weight:300;}
+
+.policy-h2{font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);font-weight:300;margin-bottom:.8rem;margin-top:1.5rem;}
+
+.policy-p{font-size:.9rem;line-height:1.9;color:rgba(244,240,248,.7);font-weight:300;margin-bottom:.8rem;}
+.policy-p a{color:var(--lavender);text-decoration:none;transition:color .2s;}
+.policy-p a:hover{color:var(--gold-light);}
+
+.policy-list{list-style:none;margin:.5rem 0 1rem;padding:0;}
+.policy-list li{font-size:.9rem;line-height:1.8;color:rgba(244,240,248,.7);font-weight:300;padding-left:1.2rem;position:relative;margin-bottom:.2rem;}
+.policy-list li::before{content:'✦';position:absolute;left:0;font-size:.5rem;color:var(--gold);top:.55rem;}
+
+.policy-highlight{background:rgba(107,91,158,.1);border:1px solid rgba(196,181,232,.1);border-radius:2px;padding:1rem 1.3rem;margin:1rem 0;}
+.policy-highlight p{font-size:.85rem;line-height:1.75;color:rgba(244,240,248,.65);font-weight:300;}
+.policy-highlight strong{color:var(--gold-light);font-weight:400;}
+
+.policy-divider{border:none;border-top:1px solid rgba(196,181,232,.07);margin:2rem 0;}
+
+footer{border-top:1px solid rgba(196,181,232,.1);padding:3rem 4rem;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}
+.footer-logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.2rem;font-weight:300;color:var(--gold-light);letter-spacing:.1em;}
+.footer-phrase{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(196,181,232,.4);font-weight:300;}
+.footer-copy{font-size:.72rem;color:rgba(196,181,232,.3);font-weight:300;}
+
+@media(max-width:768px){
+  nav{padding:1.2rem 1.5rem;}
+  .page-wrapper{padding:8rem 1.5rem 5rem;}
+  .policy-card{padding:2rem 1.5rem;}
+  footer{flex-direction:column;gap:1rem;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<nav>
+  <a href="/" class="nav-logo">Octavo <span>Cielo</span></a>
+  <a href="/" class="nav-back">← Volver al inicio</a>
+</nav>
+
+<main class="page-wrapper">
+
+  <div class="page-header">
+    <span class="page-eyebrow">✦ Legal</span>
+    <h1 class="page-title">Política de <em>Privacidad</em></h1>
+    <p class="page-subtitle">Aplicación de Astrología Electiva IA</p>
+    <span class="page-updated">Última actualización: mayo de 2026</span>
+  </div>
+
+  <div class="policy-card">
+
+    <!-- 1 -->
+    <div class="policy-section">
+      <h2 class="policy-h1"><span class="num">01</span> Información general</h2>
+      <p class="policy-p">La presente Política de Privacidad regula el tratamiento de datos personales de los usuarios de la aplicación de Astrología Electiva IA (en adelante, "la App"), disponible en octavocielo.com.ar, desarrollada y operada por Octavo Cielo.</p>
+      <p class="policy-p">Al utilizar la App, el usuario acepta las condiciones establecidas en esta Política. Si no está de acuerdo con alguno de sus términos, le solicitamos que se abstenga de utilizar la App.</p>
+    </div>
+
+    <hr class="policy-divider">
+
+    <!-- 2 -->
+    <div class="policy-section">
+      <h2 class="policy-h1"><span class="num">02</span> Responsable del tratamiento</h2>
+      <div class="policy-highlight">
+        <p><strong>Nombre del proyecto:</strong> Octavo Cielo<br>
+        <strong>Sitio web:</strong> octavocielo.com.ar<br>
+        <strong>Correo electrónico:</strong> hola@octavocielo.com.ar<br>
+        <strong>Ámbito de operación:</strong> Argentina y países de habla hispana</p>
+      </div>
+    </div>
+
+    <hr class="policy-divider">
+
+    <!-- 3 -->
+    <div class="policy-section">
+      <h2 class="policy-h1"><span class="num">03</span> Datos que recopilamos</h2>
+
+      <p class="policy-h2">3.1 Datos que NO recopilamos</p>
+      <p class="policy-p">La App de Astrología Electiva IA no solicita registro de usuario, no requiere nombre, apellido, correo electrónico ni ningún dato de identificación personal para su uso.</p>
+
+      <p class="policy-h2">3.2 Datos técnicos anónimos</p>
+      <p class="policy-p">Durante el uso de la App, pueden recopilarse de forma automática los siguientes datos técnicos de carácter anónimo:</p>
+      <ul class="policy-list">
+        <li>Tipo de dispositivo y sistema operativo</li>
+        <li>Navegador utilizado</li>
+        <li>Datos de uso anónimos (páginas visitadas, duración de la sesión)</li>
+        <li>Dirección IP (de forma anónima y agregada)</li>
+      </ul>
+
+      <p class="policy-h2">3.3 Datos almacenados localmente</p>
+      <p class="policy-p">La App utiliza el almacenamiento local del navegador (localStorage) exclusivamente para registrar el número de consultas gratuitas utilizadas por el usuario. Este dato:</p>
+      <ul class="policy-list">
+        <li>No se transmite a ningún servidor</li>
+        <li>No contiene información personal identificable</li>
+        <li>Puede ser eliminado por el usuario en cualquier momento desde la configuración de su navegador</li>
+      </ul>
+
+      <p class="policy-h2">3.4 Consultas al chat de IA</p>
+      <p class="policy-p">Los mensajes que el usuario envía al chat de inteligencia artificial son procesados por la API de Anthropic (Claude) para generar respuestas. Estos mensajes:</p>
+      <ul class="policy-list">
+        <li>Son transmitidos de forma cifrada (HTTPS) al servidor intermediario (proxy) de Octavo Cielo</li>
+        <li>Son procesados por Anthropic de acuerdo con su propia política de privacidad (<a href="https://anthropic.com/privacy" target="_blank">anthropic.com/privacy</a>)</li>
+        <li>No son almacenados de forma permanente por Octavo Cielo</li>
+        <li>No son utilizados para identificar al usuario</li>
+      </ul>
+    </div>
+
+    <hr class="policy-divider">
+
+    <!-- 4 -->
+    <div class="policy-section">
+      <h2 class="policy-h1"><span class="num">04</span> Finalidad del tratamiento de datos</h2>
+      <p class="policy-p">Los datos técnicos anónimos recopilados tienen como única finalidad:</p>
+      <ul class="policy-list">
+        <li>Garantizar el correcto funcionamiento de la App</li>
+        <li>Medir el uso general de la plataforma de forma anónima y agregada</li>
+        <li>Mejorar la experiencia de usuario</li>
+      </ul>
+      <div class="policy-highlight">
+        <p>Octavo Cielo <strong>no utiliza los datos para publicidad personalizada</strong>, no los vende a terceros ni los comparte con fines comerciales.</p>
+      </div>
+    </div>
+
+    <hr class="policy-divider">
+
+    <!-- 5 -->
+    <div class="policy-section">
+      <h2 class="policy-h1"><span class="num">05</span> Uso de servicios de terceros</h2>
+
+      <p class="policy-h2">5.1 Anthropic (API de inteligencia artificial)</p>
+      <p class="policy-p">La App utiliza la API de Claude, desarrollada por Anthropic PBC, para procesar las consultas de los usuarios. Anthropic actúa como encargado del tratamiento y se rige por sus propias políticas de privacidad y seguridad. Más información: <a href="https://anthropic.com/privacy" target="_blank">anthropic.com/privacy</a></p>
+
+      <p class="policy-h2">5.2 Netlify (hosting)</p>
+      <p class="policy-p">La App está alojada en la plataforma Netlify, que puede recopilar datos técnicos anónimos de acceso al sitio. Más información: <a href="https://netlify.com/privacy" target="_blank">netlify.com/privacy</a></p>
+
+      <p class="policy-h2">5.3 Google Fonts</p>
+      <p class="policy-p">La App utiliza fuentes tipográficas de Google Fonts, cargadas desde los servidores de Google. Google puede registrar solicitudes de acceso a estas fuentes. Más información: <a href="https://policies.google.com/privacy" target="_blank">policies.google.com/privacy</a></p>
+    </div>
+
+    <hr class="policy-divider">
+
+    <!-- 6 -->
+    <div class="policy-section">
+      <h2 class="policy-h1"><span class="num">06</span> Derechos de los usuarios</h2>
+      <p class="policy-p">De conformidad con la Ley 25.326 de Protección de Datos Personales de la República Argentina, los usuarios tienen derecho a:</p>
+      <ul class="policy-list">
+        <li>Acceder a sus datos personales</li>
+        <li>Rectificar datos inexactos o incompletos</li>
+        <li>Solicitar la supresión de sus datos</li>
+        <li>Oponerse al tratamiento de sus datos</li>
+      </ul>
+      <p class="policy-p">Para ejercer cualquiera de estos derechos, podés contactarte a: <a href="mailto:hola@octavocielo.com.ar">hola@octavocielo.com.ar</a></p>
+      <p class="policy-p">La Dirección Nacional de Protección de Datos Personales (DNPDP) es el órgano de control en Argentina para el cumplimiento de la Ley 25.326.</p>
+    </div>
+
+    <hr class="policy-divider">
+
+    <!-- 7 -->
+    <div class="policy-section">
+      <h2 class="policy-h1"><span class="num">07</span> Seguridad de los datos</h2>
+      <p class="policy-p">Octavo Cielo implementa medidas técnicas y organizativas razonables para proteger la información de los usuarios, incluyendo:</p>
+      <ul class="policy-list">
+        <li>Transmisión de datos cifrada mediante protocolo HTTPS</li>
+        <li>Uso de un servidor proxy intermediario para proteger las claves de acceso a la API</li>
+        <li>No almacenamiento de datos personales identificables en servidores propios</li>
+      </ul>
+    </div>
+
+    <hr class="policy-divider">
+
+    <!-- 8 -->
+    <div class="policy-section">
+      <h2 class="policy-h1"><span class="num">08</span> Menores de edad</h2>
+      <p class="policy-p">La App no está dirigida a menores de 13 años. Octavo Cielo no recopila intencionalmente datos de menores de edad. Si se detecta que un menor ha proporcionado datos personales, se procederá a su eliminación inmediata.</p>
+    </div>
+
+    <hr class="policy-divider">
+
+    <!-- 9 -->
+    <div class="policy-section">
+      <h2 class="policy-h1"><span class="num">09</span> Modificaciones a esta Política</h2>
+      <p class="policy-p">Octavo Cielo se reserva el derecho de modificar esta Política de Privacidad en cualquier momento. Las modificaciones serán publicadas en esta misma página con indicación de la fecha de actualización. El uso continuado de la App tras la publicación de cambios implica la aceptación de los mismos.</p>
+    </div>
+
+    <hr class="policy-divider">
+
+    <!-- 10 -->
+    <div class="policy-section">
+      <h2 class="policy-h1"><span class="num">10</span> Contacto</h2>
+      <p class="policy-p">Para consultas, dudas o solicitudes relacionadas con esta Política de Privacidad:</p>
+      <div class="policy-highlight">
+        <p><strong>Octavo Cielo</strong><br>
+        <a href="https://octavocielo.com.ar">octavocielo.com.ar</a><br>
+        <a href="mailto:hola@octavocielo.com.ar">hola@octavocielo.com.ar</a></p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <span class="footer-logo">Octavo Cielo</span>
+  <span class="footer-phrase">✦ Donde el alma se alinea con el cosmos ✦</span>
+  <span class="footer-copy">© 2026 Octavo Cielo</span>
+</footer>
+
+<script>
+var st = document.getElementById('stars');
+for (var i = 0; i < 120; i++) {
+  var el = document.createElement('div');
+  el.classList.add('star');
+  var sz = Math.random() * 2 + 0.5;
+  el.style.cssText = 'width:'+sz+'px;height:'+sz+'px;top:'+(Math.random()*100)+'%;left:'+(Math.random()*100)+'%;--o:'+(Math.random()*.5+.1)+';--d:'+(Math.random()*4+2)+'s;animation-delay:'+(Math.random()*5)+'s;';
+  st.appendChild(el);
+}
+</script>
+</body>
+</html>
