@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.octavocielo.oraculo",
+        "sha256_cert_fingerprints": ["47:6E:CC:DE:D4:43:F1:FE:13:3C:5A:26:1D:12:59:5D:29:79:DA:06:36:FF:89:69:92:8B:95:11:73:0A:AA:E9"]
+      }
+    }]
