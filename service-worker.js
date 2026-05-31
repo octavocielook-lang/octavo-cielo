@@ -1,4 +1,4 @@
-const CACHE = 'octavo-cielo-v1';
+const CACHE = 'octavo-cielo-v2';
 const ASSETS = [
   '/octavo-cielo-electiva.html',
   '/manifest.json',
