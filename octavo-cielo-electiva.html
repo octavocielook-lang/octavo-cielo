@@ -1102,9 +1102,8 @@ function showSubLimitMsg() {
   document.getElementById('sendBtn').disabled = true;
   document.querySelectorAll('.quick-btn').forEach(b => b.disabled = true);
   // Mostrar mensaje en el chat
-  appendMsg('ai', `🌙 Llegaste a tus 100 consultas de este mes. Tus créditos se renuevan automáticamente el ${renewal}. ¡Hasta entonces, que los astros te guíen!`);
+ addMessage('ai', `🌙 Llegaste a tus 100 consultas de este mes. Tus créditos se renuevan automáticamente el ${renewal}. ¡Hasta entonces, que los astros te guíen!`);
 }
-
 function showPaywall() {
   document.getElementById('paywall').classList.add('show');
   document.getElementById('chatInput').disabled = true;
@@ -1328,26 +1327,37 @@ async function callClaude(userMessage) {
     role: m.role === 'ai' ? 'assistant' : 'user',
     content: m.content
   }));
-
   conversationMessages.push({
     role: 'user',
     content: `${skyCtx}\n\nPREGUNTA DEL USUARIO: ${userMessage}`
   });
 
-  const response = await fetch('https://cold-meadow-e6e4.octavocielook.workers.dev/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1000,
-      system: buildSystemPrompt(),
-      messages: conversationMessages,
-      accessCode: isSubscribed() ? CODIGO_VALIDO : ''
-    })
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-  const data = await response.json();
-  if (data.content && data.content[0]) return data.content[0].text;
-  throw new Error('Sin respuesta');
+  try {
+    const response = await fetch('https://cold-meadow-e6e4.octavocielook.workers.dev/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: buildSystemPrompt(),
+        messages: conversationMessages,
+        accessCode: isSubscribed() ? CODIGO_VALIDO : ''
+      }),
+      signal: controller.signal
+    });
+    const data = await response.json();
+    if (data.content && data.content[0]) return data.content[0].text;
+    if (data.error) throw new Error(data.error.message || 'Error del servidor');
+    throw new Error('Sin respuesta');
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('timeout');
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function addMessage(role, content) {
@@ -1428,9 +1438,12 @@ async function sendMessage() {
         ).join('');
       }
     }
-  } catch (err) {
+ } catch (err) {
     removeTyping();
-    addMessage('ai', 'Las estrellas están en silencio por un momento. Por favor, intentá de nuevo. 🌙');
+    const errMsg = err.message === 'timeout'
+      ? 'La consulta tardó demasiado. Revisá tu conexión e intentá de nuevo. 🌙'
+      : 'Las estrellas están en silencio por un momento. Por favor, intentá de nuevo. 🌙';
+    addMessage('ai', errMsg);
   }
 
   isLoading = false;
