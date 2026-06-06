@@ -1022,10 +1022,12 @@ function isSubscribed() {
 function activarCodigo() {
   const input = document.getElementById('codigoInput').value.trim().toUpperCase();
   const errorEl = document.getElementById('codigoError');
-  if (input === CODIGO_VALIDO) {
+if (input === CODIGO_VALIDO) {
     localStorage.setItem(STORAGE_KEY_SUB, '1');
     document.getElementById('paywall').classList.remove('show');
     document.getElementById('sendBtn').disabled = false;
+    document.getElementById('chatInput').disabled = false;
+    document.querySelectorAll('.quick-btn').forEach(b => b.disabled = false);
     errorEl.textContent = '';
   } else {
     errorEl.textContent = 'Código incorrecto. Revisá el email que recibiste al suscribirte.';
@@ -1088,7 +1090,6 @@ function renderCounter() {
     dots.innerHTML = Array.from({length: LIMIT}, (_, i) =>
       `<div class="consultas-dot${i < used ? ' used' : ''}"></div>`
     ).join('');
-    if (used >= LIMIT) showPaywall();
   }
 }
 
