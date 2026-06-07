@@ -1,4 +1,22 @@
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+
+// Verifica que el webhook viene genuinamente de MercadoPago
+function verificarFirmaMP(event, dataId) {
+  const secret = process.env.MP_WEBHOOK_SECRET;
+  if (!secret) return true; // si no hay secret configurado, no bloquear (modo desarrollo)
+
+  const xSignature = event.headers['x-signature'];
+  const xRequestId = event.headers['x-request-id'];
+  if (!xSignature || !xRequestId) return false;
+
+  const parts = Object.fromEntries(xSignature.split(',').map(p => p.split('=')));
+  if (!parts.ts || !parts.v1) return false;
+
+  const manifest = `id:${dataId};request-id:${xRequestId};ts:${parts.ts};`;
+  const hash = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
+  return hash === parts.v1;
+}
 
 exports.handler = async function(event, context) {
   // MP siempre espera un 200 — responder rápido ante cualquier error
@@ -10,6 +28,12 @@ exports.handler = async function(event, context) {
     const payload = JSON.parse(event.body || '{}');
     const type = payload.type;
     const dataId = payload.data?.id;
+
+    // Verificar firma antes de procesar
+    if (dataId && !verificarFirmaMP(event, dataId)) {
+      console.warn('Webhook rechazado: firma inválida');
+      return { statusCode: 401, body: 'Unauthorized' };
+    }
 
     // Si no hay ID útil, ignorar silenciosamente
     if (!dataId) {
