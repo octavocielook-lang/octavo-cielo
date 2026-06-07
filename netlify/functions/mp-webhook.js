@@ -70,7 +70,7 @@ exports.handler = async function(event, context) {
 
     const greeting = payerName ? `Hola ${payerName}` : 'Hola';
     const oracleCode = process.env.ORACLE_CODE || 'ORACULO2026';
-    const appUrl = 'https://octavocielo.netlify.app/octavo-cielo-electiva.html';
+    const appUrl = 'https://octavocielo.com.ar/octavo-cielo-electiva.html';
 
     // Email al suscriptor
     await transporter.sendMail({
