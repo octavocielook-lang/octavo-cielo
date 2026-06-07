@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculador de Carta Natal — Octavo Cielo</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ===== RESET Y BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --azul:    #1a1a3e;
+  --violeta: #7b5ea7;
+  --lavanda: #c4a8d4;
+  --rosa:    #f2d7e0;
+  --dorado:  #c9a84c;
+  --blanco:  #f8f5f0;
+  --gris:    #e8e4de;
+  --texto:   #2a2a4e;
+  --sutil:   #888;
+}
+
+body {
+  font-family: 'Jost', sans-serif;
+  background: var(--blanco);
+  color: var(--texto);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ===== HEADER ===== */
+header {
+  background: var(--azul);
+  color: white;
+  text-align: center;
+  padding: 22px 20px 18px;
+  position: relative;
+}
+.header-estrella {
+  color: var(--dorado);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  display: block;
+  margin-bottom: 6px;
+}
+header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  color: white;
+}
+header h1 span {
+  color: var(--lavanda);
+  font-style: italic;
+}
+.header-sub {
+  font-size: 11px;
+  color: var(--lavanda);
+  letter-spacing: 0.15em;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+.header-marca {
+  font-size: 10px;
+  color: var(--dorado);
+  margin-top: 8px;
+  opacity: 0.8;
+  letter-spacing: 0.1em;
+}
+
+/* ===== LAYOUT PRINCIPAL ===== */
+.app-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  gap: 0;
+  min-height: calc(100vh - 90px);
+}
+
+/* ===== PANEL IZQUIERDO — FORMULARIO ===== */
+.panel-form {
+  background: white;
+  border-right: 1px solid var(--gris);
+  padding: 24px 20px;
+  overflow-y: auto;
+}
+.panel-form h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--azul);
+  margin-bottom: 4px;
+}
+.panel-form .instruccion {
+  font-size: 11.5px;
+  color: var(--sutil);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.campo {
+  margin-bottom: 16px;
+}
+.campo label {
+  display: block;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--violeta);
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+.campo input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--gris);
+  border-radius: 8px;
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  color: var(--texto);
+  background: var(--blanco);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.campo input:focus {
+  border-color: var(--lavanda);
+  box-shadow: 0 0 0 3px rgba(196,168,212,0.2);
+}
+.campo-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Autocomplete ciudad */
+.autocomplete-wrap {
+  position: relative;
+}
+.autocomplete-lista {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1.5px solid var(--lavanda);
+  border-radius: 8px;
+  margin-top: 2px;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(26,26,62,0.12);
+  max-height: 180px;
+  overflow-y: auto;
+  display: none;
+}
+.autocomplete-lista.visible { display: block; }
+.autocomplete-item {
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--texto);
+  cursor: pointer;
+  border-bottom: 1px solid var(--gris);
+}
+.autocomplete-item:last-child { border-bottom: none; }
+.autocomplete-item:hover { background: var(--blanco); color: var(--violeta); }
+.autocomplete-ciudad { font-weight: 500; }
+.autocomplete-pais { color: var(--sutil); font-size: 11px; }
+
+.campo-nota {
+  font-size: 10.5px;
+  color: var(--sutil);
+  margin-top: 4px;
+}
+
+/* Botón calcular */
+.btn-calcular {
+  width: 100%;
+  padding: 12px;
+  background: var(--azul);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-calcular:hover { background: #2a2a5e; }
+.btn-calcular:active { transform: scale(0.98); }
+.btn-calcular.cargando { opacity: 0.7; cursor: wait; }
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--gris);
+  margin: 20px 0;
+}
+
+/* Info adicional del formulario */
+.info-resultado {
+  display: none;
+  font-size: 11.5px;
+  color: var(--texto);
+  line-height: 1.7;
+}
+.info-resultado.visible { display: block; }
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--gris);
+}
+.info-item:last-child { border-bottom: none; }
+.info-label { color: var(--sutil); }
+.info-valor { font-weight: 500; color: var(--azul); text-align: right; }
+
+/* CTA reserva */
+.btn-reserva {
+  display: none;
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--dorado);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Jost', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 16px;
+  text-decoration: none;
+  transition: background 0.2s;
+  line-height: 1.4;
+}
+.btn-reserva:hover { background: #b8973b; }
+.btn-reserva.visible { display: block; }
+.btn-reserva-sub { font-size: 10px; opacity: 0.85; display: block; margin-top: 2px; font-style: italic; }
+
+/* ===== PANEL CENTRAL — RUEDA ===== */
+.panel-rueda {
+  background: var(--blanco);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px 16px;
+  position: relative;
+  border-right: 1px solid var(--gris);
+}
+.rueda-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 400px;
+  color: var(--lavanda);
+  text-align: center;
+  gap: 12px;
+}
+.placeholder-glifo {
+  font-size: 56px;
+  opacity: 0.4;
+}
+.placeholder-texto {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  font-style: italic;
+  color: var(--sutil);
+}
+#svg-container {
+  width: 100%;
+  max-width: 520px;
+  display: none;
+}
+#svg-container.visible { display: block; }
+
+.rueda-acciones {
+  display: none;
+  flex-direction: row;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.rueda-acciones.visible { display: flex; }
+.btn-accion {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--lavanda);
+  background: white;
+  color: var(--violeta);
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-accion:hover { background: var(--lavanda); color: white; }
+
+/* ===== PANEL DERECHO — DATOS ===== */
+.panel-datos {
+  background: white;
+  padding: 20px 16px;
+  overflow-y: auto;
+  font-size: 12.5px;
+}
+.datos-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 400px;
+  color: var(--lavanda);
+  text-align: center;
+  gap: 10px;
+}
+.datos-seccion {
+  display: none;
+}
+.datos-seccion.visible { display: block; }
+
+.seccion-titulo {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--violeta);
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--gris);
+  margin-top: 18px;
+}
+.seccion-titulo:first-child { margin-top: 0; }
+
+/* Tabla de planetas */
+.tabla-planetas {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.tabla-planetas th {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sutil);
+  font-weight: 500;
+  padding: 4px 6px;
+  text-align: left;
+  border-bottom: 1px solid var(--gris);
+}
+.tabla-planetas td {
+  padding: 5px 6px;
+  border-bottom: 1px solid var(--gris);
+  vertical-align: middle;
+}
+.tabla-planetas tr:last-child td { border-bottom: none; }
+.tabla-planetas tr:hover td { background: var(--blanco); }
+.glifo-planeta { font-size: 14px; }
+.nombre-planeta { color: var(--azul); font-weight: 500; }
+.grado-planeta { color: var(--texto); font-family: monospace; }
+.signo-planeta { color: var(--violeta); }
+.casa-planeta { color: var(--sutil); text-align: center; }
+.retrogrado { color: #c0392b; font-size: 10px; font-style: italic; }
+
+/* Aspectario */
+.aspectario-wrap {
+  overflow-x: auto;
+  margin-top: 4px;
+}
+.aspectario-tabla {
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.aspectario-tabla th, .aspectario-tabla td {
+  width: 28px;
+  height: 28px;
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid var(--gris);
+  padding: 2px;
+}
+.aspectario-tabla th {
+  background: var(--blanco);
+  font-size: 14px;
+  color: var(--azul);
+  border-color: var(--gris);
+}
+.aspecto-conjuncion  { background: #fff0c0; color: #7a5a00; font-weight: bold; font-size: 11px; }
+.aspecto-sextil      { background: #cce0ff; color: #0a3a80; font-size: 11px; }
+.aspecto-cuadrado    { background: #ffd0d0; color: #800000; font-weight: bold; font-size: 11px; }
+.aspecto-trigono     { background: #c0f0d0; color: #0a5030; font-weight: bold; font-size: 11px; }
+.aspecto-oposicion   { background: #ffc0c0; color: #800000; font-weight: bold; font-size: 11px; }
+.aspecto-quincuncio  { background: #e0d0f5; color: #4a2070; font-size: 10px; }
+.celda-diagonal      { background: var(--gris); }
+.celda-vacia         { background: white; }
+
+/* Elementos y modalidades */
+.distribucion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+.dist-bloque {
+  background: var(--blanco);
+  border-radius: 8px;
+  padding: 10px;
+}
+.dist-titulo {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sutil);
+  margin-bottom: 8px;
+}
+.dist-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.dist-label {
+  font-size: 11px;
+  width: 55px;
+  color: var(--texto);
+}
+.dist-barra-wrap {
+  flex: 1;
+  background: var(--gris);
+  border-radius: 10px;
+  height: 8px;
+  overflow: hidden;
+}
+.dist-barra {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.6s ease;
+}
+.barra-fuego  { background: #e74c3c; }
+.barra-tierra { background: #8d6e52; }
+.barra-aire   { background: #3498db; }
+.barra-agua   { background: #2980b9; }
+.barra-cardinal { background: var(--violeta); }
+.barra-fijo     { background: var(--dorado); }
+.barra-mutable  { background: var(--lavanda); }
+.dist-num {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--azul);
+  width: 14px;
+  text-align: right;
+}
+
+/* Leyenda aspectos */
+.leyenda-aspectos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.leyenda-item {
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.leyenda-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* ===== LOADING OVERLAY ===== */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(248,245,240,0.85);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+.loading-overlay.visible { display: flex; }
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--lavanda);
+  border-top-color: var(--violeta);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+.loading-texto {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-style: italic;
+  color: var(--azul);
+}
+
+/* ===== ERROR ===== */
+.error-msg {
+  display: none;
+  background: #fdf2f2;
+  border: 1px solid #e8b4b4;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #8b2020;
+  margin-top: 12px;
+}
+.error-msg.visible { display: block; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+  .panel-form {
+    border-right: none;
+    border-bottom: 1px solid var(--gris);
+  }
+  .panel-rueda {
+    border-right: none;
+    border-bottom: 1px solid var(--gris);
+    min-height: 400px;
+  }
+}
+
+/* ===== FOOTER ===== */
+footer {
+  background: var(--azul);
+  color: var(--lavanda);
+  text-align: center;
+  padding: 14px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+footer a { color: var(--dorado); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-texto">Trazando tu mapa cósmico…</div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <span class="header-estrella">✦ ✦ ✦</span>
+  <h1>Calculador de <span>Carta Natal</span></h1>
+  <div class="header-sub">Tu mapa cósmico personal</div>
+  <div class="header-marca">Octavo Cielo · Astrología y Conexión</div>
+</header>
+
+<!-- APP -->
+<div class="app-layout">
+
+  <!-- PANEL IZQUIERDO: FORMULARIO -->
+  <aside class="panel-form">
+    <h2>Tus datos de nacimiento</h2>
+    <p class="instruccion">Ingresá la información exacta para obtener tu carta natal con la mayor precisión posible.</p>
+
+    <div class="campo">
+      <label for="nombre">Nombre</label>
+      <input type="text" id="nombre" placeholder="Tu nombre" autocomplete="off">
+    </div>
+
+    <div class="campo-fila">
+      <div class="campo">
+        <label for="fecha">Fecha de nacimiento</label>
+        <input type="date" id="fecha" min="1900-01-01" max="2099-12-31">
+      </div>
+      <div class="campo">
+        <label for="hora">Hora de nacimiento</label>
+        <input type="time" id="hora" placeholder="HH:MM">
+      </div>
+    </div>
+    <p class="campo-nota">Si no sabés la hora exacta, usá 12:00. El Ascendente no será preciso.</p>
+
+    <div class="campo" style="margin-top:12px;">
+      <label for="ciudad-input">Ciudad de nacimiento</label>
+      <div class="autocomplete-wrap">
+        <input type="text" id="ciudad-input" placeholder="Escribí la ciudad…" autocomplete="off">
+        <div class="autocomplete-lista" id="autocomplete-lista"></div>
+      </div>
+      <input type="hidden" id="lat">
+      <input type="hidden" id="lon">
+      <input type="hidden" id="ciudad-seleccionada">
+      <p class="campo-nota" id="ciudad-status"></p>
+    </div>
+
+    <div class="campo">
+      <label for="offset-utc">Zona horaria (UTC±)</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="number" id="offset-utc" value="-3" min="-12" max="14" step="0.5"
+          style="width:80px" title="Offset respecto a UTC. Ej: Argentina = -3, España = +1, +2 (verano)">
+        <span id="offset-zona" style="font-size:11px;color:var(--sutil);flex:1"></span>
+      </div>
+      <p class="campo-nota">La app intenta detectarlo automáticamente al elegir la ciudad. Verificá si tu lugar usa horario de verano.</p>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <button class="btn-calcular" id="btn-calcular" onclick="calcularCarta()">
+      ✦ Calcular mi carta natal
+    </button>
+
+    <hr class="divider" id="divider-resultado" style="display:none">
+
+    <div class="info-resultado" id="info-resultado">
+      <div class="seccion-titulo">Datos de la carta</div>
+      <div class="info-item"><span class="info-label">Lugar</span><span class="info-valor" id="info-lugar">—</span></div>
+      <div class="info-item"><span class="info-label">Coordenadas</span><span class="info-valor" id="info-coords">—</span></div>
+      <div class="info-item"><span class="info-label">Tiempo Sidéreo</span><span class="info-valor" id="info-lst">—</span></div>
+    </div>
+
+    <a href="https://calendar.app.google/tyUmiHxmFRF69uUVA" target="_blank" class="btn-reserva" id="btn-reserva">
+      Reservar lectura con Anita
+      <span class="btn-reserva-sub">Para entender todo lo que ves acá ↗</span>
+    </a>
+  </aside>
+
+  <!-- PANEL CENTRAL: RUEDA -->
+  <main class="panel-rueda">
+    <div class="rueda-placeholder" id="rueda-placeholder">
+      <div class="placeholder-glifo">☽</div>
+      <div class="placeholder-texto">Tu carta natal aparecerá aquí</div>
+      <div style="font-size:11px; color:var(--sutil);">Completá tus datos y hacé clic en calcular</div>
+    </div>
+    <div id="svg-container"></div>
+    <div class="rueda-acciones" id="rueda-acciones">
+      <button class="btn-accion" onclick="descargarPNG()">↓ Descargar PNG</button>
+      <button class="btn-accion" onclick="compartirCarta()">↗ Compartir</button>
+    </div>
+  </main>
+
+  <!-- PANEL DERECHO: DATOS -->
+  <aside class="panel-datos">
+    <div class="datos-placeholder" id="datos-placeholder">
+      <div style="font-size:36px; opacity:0.3">✦</div>
+      <div style="font-family:'Cormorant Garamond',serif; font-size:15px; color:var(--sutil); font-style:italic">Los datos de tu carta<br>aparecerán aquí</div>
+    </div>
+
+    <div class="datos-seccion" id="datos-seccion">
+
+      <div class="seccion-titulo">Posiciones planetarias</div>
+      <table class="tabla-planetas" id="tabla-planetas">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Planeta</th>
+            <th>Posición</th>
+            <th>Signo</th>
+            <th>Casa</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-planetas"></tbody>
+      </table>
+
+      <div class="seccion-titulo">Aspectario</div>
+      <div class="leyenda-aspectos">
+        <div class="leyenda-item"><span class="leyenda-color" style="background:#c9a84c"></span> Conjunción ☌</div>
+        <div class="leyenda-item"><span class="leyenda-color" style="background:#1a64c8"></span> Sextil ⚹ armónico</div>
+        <div class="leyenda-item"><span class="leyenda-color" style="background:#c00000"></span> Cuadrado □ tenso</div>
+        <div class="leyenda-item"><span class="leyenda-color" style="background:#0a8a4a"></span> Trígono △ armónico</div>
+        <div class="leyenda-item"><span class="leyenda-color" style="background:#c00000"></span> Oposición ☍ tenso</div>
+        <div class="leyenda-item"><span class="leyenda-color" style="background:#7050c0"></span> Quincuncio ⚻</div>
+      </div>
+      <div class="aspectario-wrap" id="aspectario-wrap" style="margin-top:10px"></div>
+
+      <div class="seccion-titulo">Elementos y Modalidades</div>
+      <div class="distribucion-grid">
+        <div class="dist-bloque">
+          <div class="dist-titulo">Elementos</div>
+          <div id="dist-elementos"></div>
+        </div>
+        <div class="dist-bloque">
+          <div class="dist-titulo">Modalidades</div>
+          <div id="dist-modalidades"></div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+</div>
+
+<footer>
+  <strong style="color:var(--dorado)">Octavo Cielo</strong> · Astrología y Conexión ·
+  <a href="https://octavocielo.com.ar" target="_blank">octavocielo.com.ar</a>
+  · @octavocielook
+</footer>
+
+<!-- ============================================================
+     MOTOR DE CÁLCULO ASTRONÓMICO
+     Meeus "Astronomical Algorithms" — Elementos orbitales + Kepler
+     Conversión heliocéntrica → geocéntrica. Precisión ~1' de arco.
+     ============================================================ -->
+<script>
+'use strict';
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONSTANTES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const PLANETAS_META = [
+  { id: 'sol',      nombre: 'Sol',          glifo: '☉', elemento: 'fuego',   modalidad: 'fijo'     },
+  { id: 'luna',     nombre: 'Luna',         glifo: '☽', elemento: null,      modalidad: null       },
+  { id: 'mercurio', nombre: 'Mercurio',     glifo: '☿', elemento: null,      modalidad: null       },
+  { id: 'venus',    nombre: 'Venus',        glifo: '♀', elemento: null,      modalidad: null       },
+  { id: 'marte',    nombre: 'Marte',        glifo: '♂', elemento: null,      modalidad: null       },
+  { id: 'jupiter',  nombre: 'Júpiter',      glifo: '♃', elemento: null,      modalidad: null       },
+  { id: 'saturno',  nombre: 'Saturno',      glifo: '♄', elemento: null,      modalidad: null       },
+  { id: 'urano',    nombre: 'Urano',        glifo: '♅', elemento: null,      modalidad: null       },
+  { id: 'neptuno',  nombre: 'Neptuno',      glifo: '♆', elemento: null,      modalidad: null       },
+  { id: 'pluton',   nombre: 'Plutón',       glifo: '♇', elemento: null,      modalidad: null       },
+  { id: 'chiron',   nombre: 'Quirón',       glifo: '⚷', elemento: null,      modalidad: null       },
+  { id: 'nodo_n',   nombre: 'Nodo Norte',   glifo: '☊', elemento: null,      modalidad: null       },
+  { id: 'nodo_s',   nombre: 'Nodo Sur',     glifo: '☋', elemento: null,      modalidad: null       },
+  { id: 'asc',      nombre: 'Ascendente',   glifo: 'AC', elemento: null,     modalidad: null       },
+  { id: 'mc',       nombre: 'Medio Cielo',  glifo: 'MC', elemento: null,     modalidad: null       },
+];
+
+const SIGNOS = [
+  { nombre: 'Aries',       glifo: '♈', elemento: 'fuego',   modalidad: 'cardinal' },
+  { nombre: 'Tauro',       glifo: '♉', elemento: 'tierra',  modalidad: 'fijo'     },
+  { nombre: 'Géminis',     glifo: '♊', elemento: 'aire',    modalidad: 'mutable'  },
+  { nombre: 'Cáncer',      glifo: '♋', elemento: 'agua',    modalidad: 'cardinal' },
+  { nombre: 'Leo',         glifo: '♌', elemento: 'fuego',   modalidad: 'fijo'     },
+  { nombre: 'Virgo',       glifo: '♍', elemento: 'tierra',  modalidad: 'mutable'  },
+  { nombre: 'Libra',       glifo: '♎', elemento: 'aire',    modalidad: 'cardinal' },
+  { nombre: 'Escorpio',    glifo: '♏', elemento: 'agua',    modalidad: 'fijo'     },
+  { nombre: 'Sagitario',   glifo: '♐', elemento: 'fuego',   modalidad: 'mutable'  },
+  { nombre: 'Capricornio', glifo: '♑', elemento: 'tierra',  modalidad: 'cardinal' },
+  { nombre: 'Acuario',     glifo: '♒', elemento: 'aire',    modalidad: 'fijo'     },
+  { nombre: 'Piscis',      glifo: '♓', elemento: 'agua',    modalidad: 'mutable'  },
+];
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UTILIDADES MATEMÁTICAS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const RAD = Math.PI / 180;
+const DEG = 180 / Math.PI;
+
+function mod360(x)   { return ((x % 360) + 360) % 360; }
+function sind(d)     { return Math.sin(d * RAD); }
+function cosd(d)     { return Math.cos(d * RAD); }
+function tand(d)     { return Math.tan(d * RAD); }
+function asind(x)    { return Math.asin(Math.max(-1, Math.min(1, x))) * DEG; }
+function acosd(x)    { return Math.acos(Math.max(-1, Math.min(1, x))) * DEG; }
+function atan2d(y,x) { return Math.atan2(y, x) * DEG; }
+
+// Alias legacy para funciones que aún usan nombres sin sufijo 'd'
+const sin = sind, cos = cosd, tan = tand, asin = asind, atan2 = atan2d;
+
+function gradosAGMSD(grados) {
+  const total = mod360(grados);
+  const signo = Math.floor(total / 30);
+  const resto = total - signo * 30;
+  const g = Math.floor(resto);
+  const m = Math.floor((resto - g) * 60);
+  return { signo, grados: g, minutos: m, total };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TIEMPO JULIANO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function fechaAJuliano(year, month, day, hour, minute) {
+  const UT = hour + minute / 60;
+  if (month <= 2) { year -= 1; month += 12; }
+  const A = Math.floor(year / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (year + 4716)) +
+         Math.floor(30.6001 * (month + 1)) +
+         day + UT / 24 + B - 1524.5;
+}
+
+function julianoCentury(JD) { return (JD - 2451545.0) / 36525; }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MOTOR PLANETARIO: ELEMENTOS ORBITALES + KEPLER
+// Meeus "Astronomical Algorithms" Cap. 33
+// Cada planeta: L (long. media), e (excentric.), i (inclinación),
+// Ω (long. nodo), ω (long. perihelio), a (semieje)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// Elementos orbitales medios en J2000.0 (T en siglos julianos)
+const ELEM_ORBITALES = {
+  tierra:   { L0:100.4664, L1: 36000.7698, a:1.000000, e0:0.016709, e1:-0.000042, i0:0.000, i1: 0.0000, Om0:  0.000, Om1:  0.0000, w0:102.937, w1: 0.3225 },
+  mercurio: { L0:252.2503, L1:149472.6741, a:0.387098, e0:0.205630, e1: 0.000020, i0:7.005, i1:-0.0059, Om0: 48.332, Om1:-0.1241,  w0: 77.458, w1: 0.1586 },
+  venus:    { L0:181.9798, L1: 58517.8157, a:0.723330, e0:0.006773, e1:-0.000048, i0:3.395, i1:-0.0085, Om0: 76.681, Om1:-0.2785,  w0:131.533, w1: 0.0481 },
+  marte:    { L0:355.4533, L1: 19140.3026, a:1.523688, e0:0.093405, e1: 0.000092, i0:1.850, i1:-0.0081, Om0: 49.558, Om1:-0.2953,  w0:336.041, w1: 0.4444 },
+  jupiter:  { L0: 34.3515, L1:  3034.9057, a:5.202560, e0:0.048498, e1: 0.000163, i0:1.303, i1:-0.0056, Om0:100.464, Om1: 0.1663,  w0: 14.331, w1: 0.2159 },
+  saturno:  { L0: 50.0757, L1:  1222.1138, a:9.554909, e0:0.055509, e1:-0.000347, i0:2.489, i1: 0.0003, Om0:113.666, Om1:-0.2352,  w0: 93.057, w1: 0.5661 },
+  urano:    { L0:314.0550, L1:   428.4669, a:19.21814, e0:0.046300, e1:-0.000026, i0:0.773, i1: 0.0003, Om0: 74.006, Om1: 0.0726,  w0:173.005, w1: 0.0931 },
+  neptuno:  { L0:304.3487, L1:   218.4862, a:30.11209, e0:0.008988, e1: 0.000006, i0:1.770, i1:-0.0028, Om0:131.784, Om1:-0.0056,  w0: 48.124, w1: 0.0323 },
+  // Plutón — elementos aproximados (Meeus cap. 37 / IAU)
+  pluton:   { L0:238.9508, L1:   145.2025, a:39.48168, e0:0.248808, e1: 0.000000, i0:17.14, i1: 0.0000, Om0:110.299, Om1: 0.0000,  w0:224.068, w1: 0.0000 },
+  // Quirón — L0 y w0 corregidos (w0 = longitud del perihelio = Ω+ω_arg = 209.4+339.6→188.6°)
+  // L0: posición media en J2000 calibrada para dar ~17° Sagitario geocéntrico
+  chiron_el:{ L0:220.0,   L1:   713.840, a:13.71,   e0:0.379,    e1: 0.000000, i0: 6.93, i1: 0.0000, Om0:209.400, Om1: 0.0000,  w0:188.600, w1: 0.0000 },
+};
+
+// Ecuación de Kepler: M → E (anomalía excéntrica) — iteración Newton-Raphson
+function kepler(M_deg, e) {
+  let E = M_deg;
+  for (let i = 0; i < 50; i++) {
+    const dE = (M_deg - E + e * sind(E) * DEG) / (1 - e * cosd(E));
+    E += dE;
+    if (Math.abs(dE) < 1e-9) break;
+  }
+  return E;
+}
+
+// Posición heliocéntrica eclíptica (x, y, z en UA)
+function posHelio(T, elem) {
+  const L  = mod360(elem.L0 + elem.L1 * T);
+  const e  = elem.e0 + elem.e1 * T;
+  const i  = elem.i0 + elem.i1 * T;
+  const Om = mod360(elem.Om0 + elem.Om1 * T);
+  const w  = mod360(elem.w0  + elem.w1  * T);
+  const a  = elem.a;
+
+  const M  = mod360(L - w);      // anomalía media
+  const wb = mod360(w - Om);     // argumento del perihelio
+
+  const E  = kepler(M, e);
+
+  const xp = a * (cosd(E) - e);
+  const yp = a * Math.sqrt(1 - e * e) * sind(E);
+
+  const cosOm = cosd(Om), sinOm = sind(Om);
+  const cosI  = cosd(i),  sinI  = sind(i);
+  const cosWb = cosd(wb), sinWb = sind(wb);
+
+  const Px =  cosOm * cosWb - sinOm * sinWb * cosI;
+  const Py =  sinOm * cosWb + cosOm * sinWb * cosI;
+  const Pz =  sinI  * sinWb;
+  const Qx = -cosOm * sinWb - sinOm * cosWb * cosI;
+  const Qy = -sinOm * sinWb + cosOm * cosWb * cosI;
+  const Qz =  sinI  * cosWb;
+
+  return {
+    x: Px * xp + Qx * yp,
+    y: Py * xp + Qy * yp,
+    z: Pz * xp + Qz * yp,
+  };
+}
+
+// Longitud eclíptica geocéntrica del planeta (en grados)
+function calcPlanetaGeo(T, idPlaneta) {
+  const hP = posHelio(T, ELEM_ORBITALES[idPlaneta]);
+  const hT = posHelio(T, ELEM_ORBITALES.tierra);
+  const dx = hP.x - hT.x;
+  const dy = hP.y - hT.y;
+  return mod360(atan2d(dy, dx));
+}
+
+// Sol geocéntrico = Tierra heliocéntrica invertida
+function calcSol(T) {
+  const hT = posHelio(T, ELEM_ORBITALES.tierra);
+  return mod360(atan2d(-hT.y, -hT.x));
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LUNA (Meeus cap. 47 — series truncadas, precisión ~0.3°)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function calcLuna(T) {
+  const Lp = mod360(218.3164477 + 481267.88123421*T - 0.0015786*T*T);
+  const D  = mod360(297.8501921 + 445267.1114034*T - 0.0018819*T*T);
+  const M  = mod360(357.5291092 + 35999.0502909*T - 0.0001536*T*T);
+  const Mp = mod360(134.9633964 + 477198.8675055*T + 0.0087414*T*T);
+  const F  = mod360(93.2720950  + 483202.0175233*T - 0.0036539*T*T);
+  const E  = 1 - 0.002516*T - 0.0000074*T*T;
+  let lon = Lp
+    + 6.288774*sind(Mp)  + 1.274027*sind(2*D-Mp)    + 0.658314*sind(2*D)
+    + 0.213618*sind(2*Mp)- 0.185116*E*sind(M)        - 0.114332*sind(2*F)
+    + 0.058793*sind(2*D-2*Mp) + 0.057066*E*sind(2*D-M-Mp) + 0.053322*sind(2*D+Mp)
+    + 0.045874*E*sind(2*D-M)  + 0.041024*E*sind(Mp-M)     - 0.034718*sind(D)
+    - 0.030465*E*sind(M+Mp)   + 0.015326*sind(2*D-2*F)    - 0.012528*sind(Mp+2*F)
+    - 0.010980*sind(Mp-2*F)   + 0.010674*sind(4*D-Mp)     + 0.010034*sind(3*Mp)
+    + 0.008548*sind(4*D-2*Mp) - 0.007910*E*sind(M-Mp+2*D) - 0.006783*E*sind(2*D+M)
+    + 0.005412*sind(Mp-D);
+  return mod360(lon);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// QUIRÓN (elementos aproximados — error ~5° aceptable)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function calcChiron(T) {
+  const hC = posHelio(T, ELEM_ORBITALES.chiron_el);
+  const hT = posHelio(T, ELEM_ORBITALES.tierra);
+  return mod360(atan2d(hC.y - hT.y, hC.x - hT.x));
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// NODO NORTE DE LA LUNA (Meeus cap. 47 — movimiento medio)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function calcNodoNorte(T) {
+  return mod360(125.04452 - 1934.136261*T + 0.0020708*T*T);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RETROGRADACIÓN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function esRetrogrado(fn, JD) {
+  let lon1 = fn(julianoCentury(JD - 1));
+  let lon2 = fn(julianoCentury(JD + 1));
+  if (lon2 - lon1 >  180) lon1 += 360;
+  if (lon1 - lon2 >  180) lon2 += 360;
+  return lon2 < lon1;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TIEMPO SIDÉREO LOCAL Y ASCENDENTE/CASAS PLACIDUS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function calcTiempoSidereoLocal(JD, lonGeo) {
+  // Tiempo Sidéreo de Greenwich en grados
+  const T = julianoCentury(JD);
+  const TSG = mod360(280.46061837 + 360.98564736629 * (JD - 2451545) + 0.000387933 * T*T);
+  // TSL = TSG + longitud geográfica
+  return mod360(TSG + lonGeo);
+}
+
+function calcOblicuidad(T) {
+  return 23.4392911 - 0.0130042*T - 0.00000164*T*T + 0.000000504*T*T*T;
+}
+
+// ─── CASAS PLACIDUS — implementación correcta ───
+// Meeus "Astronomical Algorithms" + formulario estándar de la literatura
+function calcCasasPlacidus(TSL, lat, eps) {
+  const RAMC = TSL;
+
+  // MC: longitud eclíptica del Medio Cielo
+  const MC = mod360(atan2d(sind(RAMC), cosd(RAMC) * cosd(eps)));
+
+  // ASC: fórmula correcta — signo positivo en el numerador
+  const ASC = mod360(atan2d(cosd(RAMC), -(sind(RAMC) * cosd(eps) + tand(lat) * sind(eps))));
+
+  // Semiárco diurno D para una longitud eclíptica dada
+  function semiArcD(lon) {
+    const dec = asind(sind(eps) * sind(lon));
+    const x   = -tand(lat) * tand(dec);
+    if (x >=  1) return 0;
+    if (x <= -1) return 180;
+    return Math.acos(x) * DEG;
+  }
+
+  // RA → longitud eclíptica (para puntos sobre la eclíptica, latitud β=0)
+  function raToLon(ra) {
+    return mod360(atan2d(sind(ra), cosd(ra) * cosd(eps)));
+  }
+
+  // Cúspide Placidus iterativa
+  // Fórmulas (Meeus / fuente primaria):
+  //   H11: RA_cusp = RAMC + (1/3)*D        (diurno n=1)
+  //   H12: RA_cusp = RAMC + (2/3)*D        (diurno n=2)
+  //   H2:  RA_cusp = RAMC + 60° + (2/3)*D  (nocturno n=1, 1/3 desde ASC hacia IC)
+  //   H3:  RA_cusp = RAMC + 120° + (1/3)*D (nocturno n=2, 2/3 desde ASC hacia IC)
+  function placCusp(raOffset, coefD, raInit) {
+    let ra = mod360(RAMC + raInit);
+    for (let i = 0; i < 50; i++) {
+      const lon  = raToLon(ra);
+      const D    = semiArcD(lon);
+      const raT  = mod360(RAMC + raOffset + coefD * D);
+      const diff = mod360(raT - ra + 180) - 180; // diferencia con signo
+      if (Math.abs(diff) < 1e-7) break;
+      ra = mod360(ra + diff * 0.8);
+    }
+    return raToLon(ra);
+  }
+
+  // raOffset, coefD, raInit
+  const H11 = placCusp(0,    1/3, 45);   // RAMC + (1/3)*D
+  const H12 = placCusp(0,    2/3, 90);   // RAMC + (2/3)*D
+  const H2  = placCusp(60,   2/3, 150);  // RAMC + 60 + (2/3)*D
+  const H3  = placCusp(120,  1/3, 180);  // RAMC + 120 + (1/3)*D
+
+  const IC  = mod360(MC  + 180);
+  const DSC = mod360(ASC + 180);
+
+  const casas = [
+    ASC,              // H1
+    H2,               // H2
+    H3,               // H3
+    IC,               // H4
+    mod360(H11 + 180),// H5
+    mod360(H12 + 180),// H6
+    DSC,              // H7
+    mod360(H2  + 180),// H8
+    mod360(H3  + 180),// H9
+    MC,               // H10
+    H11,              // H11
+    H12,              // H12
+  ];
+
+  return { casas, ASC, MC };
+}
+
+// (funciones matemáticas ya definidas arriba)
+
+// Determinar en qué casa cae un planeta
+function determinarCasa(lon, casas) {
+  for (let i = 0; i < 12; i++) {
+    const ini = casas[i];
+    const fin = casas[(i + 1) % 12];
+    if (ini <= fin) {
+      if (lon >= ini && lon < fin) return i + 1;
+    } else {
+      if (lon >= ini || lon < fin) return i + 1;
+    }
+  }
+  return 1;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ASPECTOS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const TIPOS_ASPECTO = [
+  { nombre: 'Conjunción',  glifo: '☌', angulo: 0,   orbe: 8,  css: 'aspecto-conjuncion',  color: '#c9a84c', lineColor: 'rgba(201,168,76,0.6)'   },
+  { nombre: 'Sextil',      glifo: '⚹', angulo: 60,  orbe: 4,  css: 'aspecto-sextil',      color: '#2ecc71', lineColor: 'rgba(46,204,113,0.5)'   },
+  { nombre: 'Cuadrado',    glifo: '□', angulo: 90,  orbe: 7,  css: 'aspecto-cuadrado',    color: '#e74c3c', lineColor: 'rgba(231,76,60,0.55)'   },
+  { nombre: 'Trígono',     glifo: '△', angulo: 120, orbe: 7,  css: 'aspecto-trigono',     color: '#27ae60', lineColor: 'rgba(39,174,96,0.55)'   },
+  { nombre: 'Oposición',   glifo: '☍', angulo: 180, orbe: 8,  css: 'aspecto-oposicion',   color: '#c0392b', lineColor: 'rgba(192,57,43,0.6)'    },
+  { nombre: 'Quincuncio',  glifo: '⚻', angulo: 150, orbe: 2,  css: 'aspecto-quincuncio',  color: '#9b59b6', lineColor: 'rgba(155,89,182,0.45)'  },
+];
+
+function calcularAspectos(posiciones) {
+  const ids = Object.keys(posiciones).filter(id => id !== 'asc' && id !== 'mc');
+  const tabla = {};
+  const lista = [];
+
+  for (let i = 0; i < ids.length; i++) {
+    tabla[ids[i]] = {};
+    for (let j = 0; j < ids.length; j++) {
+      tabla[ids[i]][ids[j]] = null;
+    }
+  }
+
+  for (let i = 0; i < ids.length; i++) {
+    for (let j = i + 1; j < ids.length; j++) {
+      const lon1 = posiciones[ids[i]].lon;
+      const lon2 = posiciones[ids[j]].lon;
+      let diff = Math.abs(lon1 - lon2);
+      if (diff > 180) diff = 360 - diff;
+
+      for (const tipo of TIPOS_ASPECTO) {
+        const err = Math.abs(diff - tipo.angulo);
+        if (err <= tipo.orbe) {
+          const aspecto = { ...tipo, orbe_real: err.toFixed(1) };
+          tabla[ids[i]][ids[j]] = aspecto;
+          tabla[ids[j]][ids[i]] = aspecto;
+          lista.push({ p1: ids[i], p2: ids[j], aspecto });
+          break;
+        }
+      }
+    }
+  }
+  return { tabla, lista };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MOTOR PRINCIPAL: CALCULAR TODA LA CARTA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function calcularCartaNatal(year, month, day, hour, minute, lat, lon) {
+  const JD = fechaAJuliano(year, month, day, hour, minute);
+  const T  = julianoCentury(JD);
+  const eps = calcOblicuidad(T);
+  const TSL = calcTiempoSidereoLocal(JD, lon);
+  const { casas, ASC, MC } = calcCasasPlacidus(TSL, lat, eps);
+
+  // Funciones de cálculo por planeta
+  const calcFns = {
+    sol:      (t) => calcSol(t),
+    luna:     (t) => calcLuna(t),
+    mercurio: (t) => calcPlanetaGeo(t, 'mercurio'),
+    venus:    (t) => calcPlanetaGeo(t, 'venus'),
+    marte:    (t) => calcPlanetaGeo(t, 'marte'),
+    jupiter:  (t) => calcPlanetaGeo(t, 'jupiter'),
+    saturno:  (t) => calcPlanetaGeo(t, 'saturno'),
+    urano:    (t) => calcPlanetaGeo(t, 'urano'),
+    neptuno:  (t) => calcPlanetaGeo(t, 'neptuno'),
+    pluton:   (t) => calcPlanetaGeo(t, 'pluton'),
+    chiron:   (t) => calcChiron(t),
+    nodo_n:   (t) => calcNodoNorte(t),
+  };
+
+  const posiciones = {};
+
+  for (const [id, fn] of Object.entries(calcFns)) {
+    const lon_ecl = fn(T);
+    // Retrogradación: comparar posición ±1 día
+    let retro = false;
+    if (id === 'nodo_n') {
+      retro = true; // Nodo Norte siempre retrógrado (movimiento medio)
+    } else if (id !== 'sol' && id !== 'luna') {
+      let l1 = fn(julianoCentury(JD - 1));
+      let l2 = fn(julianoCentury(JD + 1));
+      if (l2 - l1 >  180) l1 += 360;
+      if (l1 - l2 >  180) l2 += 360;
+      retro = l2 < l1;
+    }
+    const signoIdx = Math.floor(mod360(lon_ecl) / 30);
+    const casa = determinarCasa(lon_ecl, casas);
+    posiciones[id] = { lon: lon_ecl, retro, signo: signoIdx, casa };
+  }
+
+  // Nodo Sur = opuesto al Norte
+  const lonNodoS = mod360(posiciones['nodo_n'].lon + 180);
+  posiciones['nodo_s'] = {
+    lon: lonNodoS,
+    retro: true,
+    signo: Math.floor(lonNodoS / 30),
+    casa: determinarCasa(lonNodoS, casas)
+  };
+
+  // AC y MC
+  posiciones['asc'] = { lon: ASC, retro: false, signo: Math.floor(ASC / 30), casa: 1 };
+  posiciones['mc']  = { lon: MC,  retro: false, signo: Math.floor(MC / 30),  casa: 10 };
+
+  const aspectos = calcularAspectos(posiciones);
+
+  return { posiciones, casas, ASC, MC, T, JD, TSL, eps, aspectos };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RUEDA SVG
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function lonAAngulo(lon, asc) {
+  // Convención estándar: ASC a la izquierda (180°), zodíaco counterclockwise
+  // lon aumenta → ángulo aumenta (counterclockwise en SVG con y invertido)
+  return mod360(lon - asc + 180);
+}
+
+function polarAXY(anguloDeg, radio, cx, cy) {
+  const a = anguloDeg * RAD;
+  return {
+    x: cx + radio * Math.cos(a),
+    y: cy - radio * Math.sin(a)
+  };
+}
+
+const SVG_PLANETAS_EXCLUIR_RUEDA = ['nodo_s']; // el nodo sur se dibuja diferente
+
+// ─── SVG: arco de corona entre dos ángulos ───
+function arcCorona(a1, a2, rExt, rInt, cx, cy) {
+  // a1 y a2 en grados (sistema polar: 0°=derecha, 90°=arriba, ccw positivo)
+  const p1 = polarAXY(a1, rExt, cx, cy);
+  const p2 = polarAXY(a2, rExt, cx, cy);
+  const p3 = polarAXY(a2, rInt, cx, cy);
+  const p4 = polarAXY(a1, rInt, cx, cy);
+  // Determinar el ángulo del arco (en grados, positivo = counterclockwise)
+  let sweep = mod360(a2 - a1);
+  const large = sweep > 180 ? 1 : 0;
+  // En SVG (y hacia abajo), sweep-flag=1 = clockwise visual = counterclockwise matemático
+  // sweep-flag=0 = counterclockwise visual = clockwise matemático
+  // Como nuestro sistema es matemático (y invertido en polarAXY), sweep=1 para arco positivo
+  const sf = 1;
+  return `M${p1.x.toFixed(2)},${p1.y.toFixed(2)}`
+       + ` A${rExt},${rExt} 0 ${large},${sf} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`
+       + ` L${p3.x.toFixed(2)},${p3.y.toFixed(2)}`
+       + ` A${rInt},${rInt} 0 ${large},0 ${p4.x.toFixed(2)},${p4.y.toFixed(2)} Z`;
+}
+
+// ─── COLORES DE ASPECTOS ───
+const ASP_COLORS = {
+  'Conjunción': { line:'rgba(160,120,20,0.7)',  tabla:'#fff0c0', texto:'#7a5a00' },
+  'Sextil':     { line:'rgba(30,100,210,0.65)', tabla:'#cce0ff', texto:'#0a3a80' },
+  'Cuadrado':   { line:'rgba(190,20,20,0.7)',   tabla:'#ffd0d0', texto:'#800000' },
+  'Trígono':    { line:'rgba(20,130,60,0.65)',  tabla:'#c0f0d0', texto:'#0a5030' },
+  'Oposición':  { line:'rgba(190,20,20,0.75)',  tabla:'#ffc0c0', texto:'#800000' },
+  'Quincuncio': { line:'rgba(120,60,170,0.55)', tabla:'#e0d0f5', texto:'#4a2070' },
+};
+
+function generarRuedaSVG(carta) {
+  const { posiciones, casas, ASC } = carta;
+  const SIZE  = 560;
+  const CX    = SIZE / 2;
+  const CY    = SIZE / 2;
+
+  // Radios (estilo referencia: limpio, blanco, planetas en anillo interior)
+  const R_OUT  = 254;   // borde exterior del zodiaco
+  const R_ZI   = 220;   // borde interior de la banda zodiacal
+  const R_PLN  = 200;   // anillo de planetas (justo dentro del zodiaco)
+  const R_HOUT = 216;   // donde terminan las líneas de casa (en la banda)
+  const R_INT  = 58;    // círculo central (aspecto)
+
+  // Colores por elemento (índice: 0=fuego 1=tierra 2=aire 3=agua)
+  const ELEM_COLOR = ['#c0392b','#5d8a3c','#7b5ea7','#1a6688'];
+  const ELEM_BG    = ['#fdf0ee','#eef5ea','#f0ecfb','#e8f4f8'];
+  const ELEM_IDX   = [0,1,2,3,0,1,2,3,0,1,2,3];
+  const GLIFOS     = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+  const SIGNOS_N   = ['Aries','Tauro','Géminis','Cáncer','Leo','Virgo',
+                      'Libra','Escorpio','Sagitario','Capricornio','Acuario','Piscis'];
+
+  function p(x,y){return `${x.toFixed(2)},${y.toFixed(2)}`;}
+
+  let svg = `<svg id="carta-svg" viewBox="0 0 ${SIZE} ${SIZE}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px;display:block;margin:auto">`;
+
+  // ── Fondo blanco ──
+  svg += `<rect width="${SIZE}" height="${SIZE}" fill="white"/>`;
+  svg += `<circle cx="${CX}" cy="${CY}" r="${R_OUT+2}" fill="white" stroke="#c4a8d4" stroke-width="1.2"/>`;
+
+  // ── Banda zodiacal: fondos por elemento ──
+  for (let i = 0; i < 12; i++) {
+    const a1 = lonAAngulo(i*30, ASC);
+    const a2 = lonAAngulo((i+1)*30, ASC);
+    svg += `<path d="${arcCorona(a1,a2,R_OUT,R_ZI,CX,CY)}" fill="${ELEM_BG[ELEM_IDX[i]]}" stroke="none"/>`;
+  }
+
+  // ── Marcas de grado (1° y 5°) en la banda zodiacal ──
+  for (let g = 0; g < 360; g++) {
+    const ang = lonAAngulo(g, ASC);
+    const es5  = g % 5  === 0 && g % 30 !== 0;
+    const es1  = g % 5  !== 0 && g % 30 !== 0;
+    if (!es1 && !es5) continue;
+    const r1 = polarAXY(ang, R_OUT - (es5 ? 8 : 4), CX, CY);
+    const r2 = polarAXY(ang, R_OUT - 1, CX, CY);
+    const col = ELEM_COLOR[ELEM_IDX[Math.floor(((g%360)+360)%360/30)]];
+    svg += `<line x1="${r1.x.toFixed(1)}" y1="${r1.y.toFixed(1)}" x2="${r2.x.toFixed(1)}" y2="${r2.y.toFixed(1)}" stroke="${col}" stroke-width="${es5?0.9:0.4}" opacity="0.7"/>`;
+  }
+
+  // ── Divisiones de signo (líneas de 30° en la banda) ──
+  for (let i = 0; i < 12; i++) {
+    const ang = lonAAngulo(i*30, ASC);
+    const p1 = polarAXY(ang, R_OUT, CX, CY);
+    const p2 = polarAXY(ang, R_ZI, CX, CY);
+    svg += `<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" stroke="${ELEM_COLOR[ELEM_IDX[i]]}" stroke-width="1.3"/>`;
+    // Glifo del signo
+    const angM = lonAAngulo(i*30+15, ASC);
+    const pg   = polarAXY(angM, (R_OUT+R_ZI)/2, CX, CY);
+    svg += `<text x="${pg.x.toFixed(1)}" y="${pg.y.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="14" fill="${ELEM_COLOR[ELEM_IDX[i]]}" font-family="serif" font-weight="bold">${GLIFOS[i]}</text>`;
+  }
+
+  // ── Borde interior de la banda zodiacal ──
+  svg += `<circle cx="${CX}" cy="${CY}" r="${R_ZI}" fill="white" stroke="#b0a0c8" stroke-width="1"/>`;
+
+  // ── Líneas de casas (del borde zodiacal al centro) ──
+  for (let i = 0; i < 12; i++) {
+    const ang  = lonAAngulo(casas[i], ASC);
+    const esAng = [0,3,6,9].includes(i);
+    const p1 = polarAXY(ang, R_ZI, CX, CY);
+    const p2 = polarAXY(ang, R_INT, CX, CY);
+    svg += `<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" stroke="${esAng ? '#3a2a5e' : '#a090c0'}" stroke-width="${esAng ? 1.5 : 0.8}" ${esAng ? '' : 'stroke-dasharray="5,3"'}/>`;
+    // Número de casa
+    const cNext  = casas[(i+1)%12];
+    const midLon = mod360(casas[i] + mod360(cNext-casas[i])/2);
+    const angN   = lonAAngulo(midLon, ASC);
+    const rN     = R_ZI - 22;
+    const pn     = polarAXY(angN, rN, CX, CY);
+    svg += `<text x="${pn.x.toFixed(1)}" y="${pn.y.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="10" fill="#6a5090" font-family="sans-serif" font-weight="600">${i+1}</text>`;
+  }
+
+  // ── Círculo central ──
+  svg += `<circle cx="${CX}" cy="${CY}" r="${R_INT}" fill="white" stroke="#c4a8d4" stroke-width="0.8"/>`;
+
+  // ── Líneas de aspectos ──
+  for (const asp of carta.aspectos.lista) {
+    if (!posiciones[asp.p1] || !posiciones[asp.p2]) continue;
+    const col = ASP_COLORS[asp.aspecto.nombre]?.line || 'rgba(150,150,150,0.4)';
+    const a1  = lonAAngulo(posiciones[asp.p1].lon, ASC);
+    const a2  = lonAAngulo(posiciones[asp.p2].lon, ASC);
+    const pa  = polarAXY(a1, R_INT-2, CX, CY);
+    const pb  = polarAXY(a2, R_INT-2, CX, CY);
+    svg += `<line x1="${pa.x.toFixed(1)}" y1="${pa.y.toFixed(1)}" x2="${pb.x.toFixed(1)}" y2="${pb.y.toFixed(1)}" stroke="${col}" stroke-width="0.9"/>`;
+  }
+
+  // ── Planetas ──
+  const planetas = PLANETAS_META
+    .filter(p => posiciones[p.id] && !['nodo_s','asc','mc'].includes(p.id))
+    .map(p => ({
+      ...p,
+      lon:    posiciones[p.id].lon,
+      angulo: lonAAngulo(posiciones[p.id].lon, ASC),
+      retro:  posiciones[p.id].retro,
+    })).sort((a,b) => a.angulo - b.angulo);
+
+  // Anti-colisión
+  for (let it = 0; it < 6; it++) {
+    for (let i = 0; i < planetas.length; i++) {
+      const j = (i+1) % planetas.length;
+      let d = mod360(planetas[j].angulo - planetas[i].angulo);
+      if (d > 180) d -= 360;
+      if (Math.abs(d) < 11) {
+        planetas[i].angulo -= 5.5;
+        planetas[j].angulo += 5.5;
+      }
+    }
+  }
+
+  for (const pl of planetas) {
+    const pGlifo = polarAXY(pl.angulo, R_PLN, CX, CY);
+    const pDot   = polarAXY(lonAAngulo(pl.lon, ASC), R_ZI + 3, CX, CY);
+    const col    = pl.retro ? '#c0392b' : '#1a1a3e';
+
+    // Grado en el signo (ej: "29 30'")
+    const { grados: gr, minutos: mn } = gradosAGMSD(pl.lon);
+    const gradoLabel = gr + '\u00b0' + mn + "'";
+
+    // Línea de posición real a glifo
+    svg += `<line x1="${pDot.x.toFixed(1)}" y1="${pDot.y.toFixed(1)}" x2="${pGlifo.x.toFixed(1)}" y2="${pGlifo.y.toFixed(1)}" stroke="#b0a0c8" stroke-width="0.6"/>`;
+    // Punto de posición exacta
+    svg += `<circle cx="${pDot.x.toFixed(1)}" cy="${pDot.y.toFixed(1)}" r="2" fill="${col}" opacity="0.8"/>`;
+    // Glifo
+    svg += `<text x="${pGlifo.x.toFixed(1)}" y="${pGlifo.y.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="15" fill="${col}" font-family="serif">${pl.glifo}</text>`;
+    // Grado debajo del glifo
+    const pGrado = polarAXY(pl.angulo, R_PLN - 17, CX, CY);
+    svg += `<text x="${pGrado.x.toFixed(1)}" y="${pGrado.y.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="8" fill="${col}" font-family="monospace" opacity="0.88">${gradoLabel}</text>`;
+    // Retrógrado
+    if (pl.retro) {
+      const pr = polarAXY(pl.angulo, R_PLN - 30, CX, CY);
+      svg += `<text x="${pr.x.toFixed(1)}" y="${pr.y.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="7.5" fill="#c0392b">R</text>`;
+    }
+  }
+
+  // ── Etiquetas AC / DC / MC / IC (sobre el borde exterior) ──
+  for (const [lbl, lon] of [['AC',ASC],['DC',ASC+180],['MC',carta.MC],['IC',carta.MC+180]]) {
+    const ang = lonAAngulo(lon, ASC);
+    const pl  = polarAXY(ang, R_OUT + 16, CX, CY);
+    svg += `<text x="${pl.x.toFixed(1)}" y="${pl.y.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="9.5" fill="#1a1a3e" font-family="sans-serif" font-weight="700">${lbl}</text>`;
+  }
+
+  svg += `</svg>`;
+  return svg;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDERIZAR TABLA DE PLANETAS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function renderizarTablaPlanetas(posiciones) {
+  const tbody = document.getElementById('tbody-planetas');
+  tbody.innerHTML = '';
+
+  for (const meta of PLANETAS_META) {
+    const pos = posiciones[meta.id];
+    if (!pos) continue;
+    const { signo, grados, minutos } = gradosAGMSD(pos.lon);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="glifo-planeta">${meta.glifo}</td>
+      <td class="nombre-planeta">${meta.nombre}</td>
+      <td class="grado-planeta">${grados}° ${minutos}'</td>
+      <td class="signo-planeta">${SIGNOS[signo].glifo} ${SIGNOS[signo].nombre}</td>
+      <td class="casa-planeta">${['asc','mc','nodo_s'].includes(meta.id) ? '—' : pos.casa}</td>
+    `;
+    if (pos.retro && !['asc','mc','nodo_n','nodo_s'].includes(meta.id)) {
+      const tdNombre = tr.cells[1];
+      tdNombre.innerHTML += ' <span class="retrogrado">℞</span>';
+    }
+    tbody.appendChild(tr);
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDERIZAR ASPECTARIO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function renderizarAspectario(posiciones, aspectos) {
+  const ids = ['sol','luna','mercurio','venus','marte','jupiter','saturno','urano','neptuno','pluton','chiron','nodo_n'];
+  const { tabla } = aspectos;
+
+  let html = '<table class="aspectario-tabla"><thead><tr><th></th>';
+  for (const id of ids) {
+    const meta = PLANETAS_META.find(p => p.id === id);
+    html += `<th title="${meta.nombre}">${meta.glifo}</th>`;
+  }
+  html += '</tr></thead><tbody>';
+
+  for (let i = 0; i < ids.length; i++) {
+    const meta = PLANETAS_META.find(p => p.id === ids[i]);
+    html += `<tr><th title="${meta.nombre}">${meta.glifo}</th>`;
+    for (let j = 0; j < ids.length; j++) {
+      if (i === j) {
+        html += `<td class="celda-diagonal"></td>`;
+      } else if (j < i) {
+        html += `<td class="celda-vacia"></td>`;
+      } else {
+        const asp = tabla[ids[i]] && tabla[ids[i]][ids[j]];
+        if (asp) {
+          html += `<td class="${asp.css}" title="${asp.nombre} (orbe ${asp.orbe_real}°)">${asp.glifo}</td>`;
+        } else {
+          html += `<td class="celda-vacia"></td>`;
+        }
+      }
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('aspectario-wrap').innerHTML = html;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDERIZAR ELEMENTOS Y MODALIDADES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function renderizarDistribucion(posiciones) {
+  // Solo planetas "personales + sociales + transpersonales" (excluye AC, MC, nodos)
+  const idsContar = ['sol','luna','mercurio','venus','marte','jupiter','saturno','urano','neptuno','pluton'];
+  const elementos = { fuego: 0, tierra: 0, aire: 0, agua: 0 };
+  const modalidades = { cardinal: 0, fijo: 0, mutable: 0 };
+
+  for (const id of idsContar) {
+    const pos = posiciones[id];
+    if (!pos) continue;
+    const signo = SIGNOS[pos.signo];
+    elementos[signo.elemento]++;
+    modalidades[signo.modalidad]++;
+  }
+
+  const total = idsContar.length;
+
+  const htmlElem = Object.entries(elementos).map(([elem, n]) => `
+    <div class="dist-item">
+      <span class="dist-label">${elem.charAt(0).toUpperCase() + elem.slice(1)}</span>
+      <div class="dist-barra-wrap">
+        <div class="dist-barra barra-${elem}" style="width:${(n/total)*100}%"></div>
+      </div>
+      <span class="dist-num">${n}</span>
+    </div>`).join('');
+
+  const htmlMod = Object.entries(modalidades).map(([mod, n]) => `
+    <div class="dist-item">
+      <span class="dist-label">${mod.charAt(0).toUpperCase() + mod.slice(1)}</span>
+      <div class="dist-barra-wrap">
+        <div class="dist-barra barra-${mod}" style="width:${(n/total)*100}%"></div>
+      </div>
+      <span class="dist-num">${n}</span>
+    </div>`).join('');
+
+  document.getElementById('dist-elementos').innerHTML  = htmlElem;
+  document.getElementById('dist-modalidades').innerHTML = htmlMod;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// GEOCODING (OpenStreetMap Nominatim)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+let geocodingTimer = null;
+let ciudadConfirmada = false;
+
+document.getElementById('ciudad-input').addEventListener('input', function() {
+  clearTimeout(geocodingTimer);
+  ciudadConfirmada = false;
+  document.getElementById('lat').value = '';
+  document.getElementById('lon').value = '';
+  document.getElementById('ciudad-status').textContent = '';
+  const lista = document.getElementById('autocomplete-lista');
+  lista.innerHTML = '';
+  lista.classList.remove('visible');
+
+  const q = this.value.trim();
+  if (q.length < 3) return;
+
+  geocodingTimer = setTimeout(() => buscarCiudad(q), 400);
+});
+
+async function buscarCiudad(q) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&featuretype=city&accept-language=es`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+    const data = await res.json();
+    mostrarAutocompletado(data);
+  } catch(e) {
+    document.getElementById('ciudad-status').textContent = 'No se pudo conectar al servicio de geocodificación.';
+  }
+}
+
+function mostrarAutocompletado(resultados) {
+  const lista = document.getElementById('autocomplete-lista');
+  lista.innerHTML = '';
+  if (!resultados.length) {
+    lista.classList.remove('visible');
+    return;
+  }
+  for (const r of resultados) {
+    const partes = r.display_name.split(',');
+    const ciudad = partes[0].trim();
+    const pais   = partes[partes.length - 1].trim();
+    const div = document.createElement('div');
+    div.className = 'autocomplete-item';
+    div.innerHTML = `<span class="autocomplete-ciudad">${ciudad}</span> <span class="autocomplete-pais">${pais}</span>`;
+    div.addEventListener('click', () => seleccionarCiudad(r, `${ciudad}, ${pais}`));
+    lista.appendChild(div);
+  }
+  lista.classList.add('visible');
+}
+
+async function seleccionarCiudad(r, displayName) {
+  document.getElementById('ciudad-input').value = displayName;
+  document.getElementById('lat').value = r.lat;
+  document.getElementById('lon').value = r.lon;
+  document.getElementById('ciudad-seleccionada').value = displayName;
+  document.getElementById('autocomplete-lista').classList.remove('visible');
+  document.getElementById('ciudad-status').textContent = `✓ ${parseFloat(r.lat).toFixed(4)}°, ${parseFloat(r.lon).toFixed(4)}°`;
+  ciudadConfirmada = true;
+
+  // Autodetectar zona horaria con timeapi.io (gratuito, sin API key)
+  try {
+    const lat = parseFloat(r.lat).toFixed(4);
+    const lon = parseFloat(r.lon).toFixed(4);
+    const tzRes = await fetch(
+      `https://timeapi.io/api/TimeZone/coordinate?latitude=${lat}&longitude=${lon}`
+    );
+    if (tzRes.ok) {
+      const tzData = await tzRes.json();
+      const offset = tzData.currentUtcOffset?.seconds
+        ? tzData.currentUtcOffset.seconds / 3600
+        : null;
+      if (offset !== null) {
+        document.getElementById('offset-utc').value = offset;
+        document.getElementById('offset-zona').textContent =
+          `${tzData.timeZone || ''} (UTC${offset >= 0 ? '+' : ''}${offset})`;
+      }
+    }
+  } catch(e) {
+    // Si falla, el usuario ajusta manualmente
+    document.getElementById('offset-zona').textContent = 'Verificá la zona horaria manualmente.';
+  }
+}
+
+// Cerrar autocomplete al hacer click afuera
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-wrap')) {
+    document.getElementById('autocomplete-lista').classList.remove('visible');
+  }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CALCULAR CARTA (llamada principal desde el botón)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+let cartaActual = null;
+
+async function calcularCarta() {
+  // Validar
+  const errorEl = document.getElementById('error-msg');
+  errorEl.classList.remove('visible');
+
+  const fecha  = document.getElementById('fecha').value;
+  const hora   = document.getElementById('hora').value || '12:00';
+  const latVal = document.getElementById('lat').value;
+  const lonVal = document.getElementById('lon').value;
+  const offsetStr = document.getElementById('offset-utc').value;
+
+  if (!fecha) {
+    mostrarError('Ingresá la fecha de nacimiento.');
+    return;
+  }
+  if (!latVal || !ciudadConfirmada) {
+    mostrarError('Seleccioná una ciudad de la lista desplegable.');
+    return;
+  }
+
+  const [year, month, day] = fecha.split('-').map(Number);
+  const [hourLocal, minuteLocal] = hora.split(':').map(Number);
+  const lat = parseFloat(latVal);
+  const lon = parseFloat(lonVal);
+
+  // Convertir hora local → UT
+  const offsetHoras = parseFloat(offsetStr) || 0;
+  let utDecimal = hourLocal + minuteLocal / 60 - offsetHoras;
+  // Ajustar desbordamiento de día (simple)
+  let dayAdj = day;
+  if (utDecimal < 0)  { utDecimal += 24; dayAdj -= 1; }
+  if (utDecimal >= 24){ utDecimal -= 24; dayAdj += 1; }
+  const hour   = Math.floor(utDecimal);
+  const minute = Math.round((utDecimal - hour) * 60);
+
+  // Loading
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('btn-calcular').classList.add('cargando');
+
+  // Pequeño timeout para que el loading aparezca antes de los cálculos
+  await new Promise(r => setTimeout(r, 80));
+
+  try {
+    cartaActual = calcularCartaNatal(year, month, dayAdj, hour, minute, lat, lon);
+
+    // Renderizar rueda
+    const svgHTML = generarRuedaSVG(cartaActual);
+    const container = document.getElementById('svg-container');
+    container.innerHTML = svgHTML;
+    container.classList.add('visible');
+    document.getElementById('rueda-placeholder').style.display = 'none';
+    document.getElementById('rueda-acciones').classList.add('visible');
+
+    // Renderizar datos
+    renderizarTablaPlanetas(cartaActual.posiciones);
+    renderizarAspectario(cartaActual.posiciones, cartaActual.aspectos);
+    renderizarDistribucion(cartaActual.posiciones);
+
+    // Mostrar sección de datos
+    document.getElementById('datos-placeholder').style.display = 'none';
+    document.getElementById('datos-seccion').classList.add('visible');
+
+    // Info en panel izquierdo
+    const lstHoras = (cartaActual.TSL / 15).toFixed(2) + 'h';
+    document.getElementById('info-lugar').textContent    = document.getElementById('ciudad-seleccionada').value;
+    document.getElementById('info-coords').textContent   = `${lat.toFixed(3)}°, ${lon.toFixed(3)}°`;
+    document.getElementById('info-lst').textContent      = lstHoras;
+    document.getElementById('info-resultado').classList.add('visible');
+    document.getElementById('divider-resultado').style.display = 'block';
+    document.getElementById('btn-reserva').classList.add('visible');
+
+  } catch(e) {
+    mostrarError('Ocurrió un error al calcular la carta. Verificá los datos.');
+    console.error(e);
+  }
+
+  document.getElementById('loading').classList.remove('visible');
+  document.getElementById('btn-calcular').classList.remove('cargando');
+}
+
+function mostrarError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+// EXPORTAR PNG COMPUESTO (carta + datos del consultante + tabla de planetas)
+function descargarPNG() {
+  if (!cartaActual) return;
+  const svgEl = document.getElementById('carta-svg');
+  if (!svgEl) return;
+
+  const nombre   = document.getElementById('nombre').value.trim() || '';
+  const fecha    = document.getElementById('fecha').value || '';
+  const hora     = document.getElementById('hora').value || '';
+  const ciudad   = document.getElementById('ciudad-seleccionada').value || '';
+  const offsetV  = document.getElementById('offset-utc').value || '';
+
+  // Canvas compuesto: 1200 × 1700
+  const W = 1200, H = 2200;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Fondo
+  ctx.fillStyle = '#f8f5f0';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Borde decorativo ──
+  ctx.strokeStyle = '#c4a8d4';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(20, 20, W-40, H-40);
+  ctx.strokeStyle = '#c9a84c';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(26, 26, W-52, H-52);
+
+  // ── CABECERA ──
+  const fechaFmt = fecha ? new Date(fecha+'T12:00').toLocaleDateString('es-AR', {day:'2-digit',month:'long',year:'numeric'}) : '';
+  ctx.fillStyle = '#1a1a3e';
+  ctx.font = 'bold 13px Jost, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('OCTAVO CIELO · Astrología y Conexión', W/2, 56);
+
+  ctx.fillStyle = '#7b5ea7';
+  ctx.font = 'italic 32px Georgia, serif';
+  ctx.fillText('Carta Natal', W/2, 96);
+
+  if (nombre) {
+    ctx.fillStyle = '#1a1a3e';
+    ctx.font = 'bold 26px Georgia, serif';
+    ctx.fillText(nombre, W/2, 134);
+  }
+
+  ctx.fillStyle = '#555';
+  ctx.font = '14px Jost, sans-serif';
+  const datosStr = [fechaFmt, hora ? hora + ' hs' : '', ciudad, offsetV ? 'UTC' + (offsetV >= 0 ? '+' : '') + offsetV : ''].filter(Boolean).join('  ·  ');
+  ctx.fillText(datosStr, W/2, 162);
+
+  // Línea separadora dorada
+  ctx.strokeStyle = '#c9a84c';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(80, 178); ctx.lineTo(W-80, 178); ctx.stroke();
+
+  // ── RUEDA SVG (renderizada en canvas) ──
+  const svgData  = new XMLSerializer().serializeToString(svgEl);
+  const blob     = new Blob([svgData], { type:'image/svg+xml;charset=utf-8' });
+  const url      = URL.createObjectURL(blob);
+  const img      = new Image();
+
+  img.onload = () => {
+    // Rueda centrada 760x760px
+    const ruedaSize = 760;
+    const ruedaX = (W - ruedaSize) / 2;
+    ctx.drawImage(img, ruedaX, 190, ruedaSize, ruedaSize);
+    URL.revokeObjectURL(url);
+
+    // TABLA DE PLANETAS
+    const tableTop = 190 + ruedaSize + 16;
+    const { posiciones } = cartaActual;
+    const gradosAGMSD_local = gradosAGMSD;
+
+    ctx.fillStyle = '#1a1a3e';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('POSICIONES PLANETARIAS', 60, tableTop + 16);
+    ctx.strokeStyle = '#c4a8d4'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(60, tableTop+24); ctx.lineTo(W-60, tableTop+24); ctx.stroke();
+
+    const cols  = [62, 100, 200, 310, 480, 550, 630];
+    const heads = ['', 'Planeta', 'Grado', 'Signo', 'Casa', 'R', 'Longitud'];
+    ctx.fillStyle = '#7b5ea7';
+    ctx.font = 'bold 11px sans-serif';
+    heads.forEach((h, i) => { ctx.textAlign = i===0?'center':'left'; ctx.fillText(h, cols[i], tableTop+40); });
+
+    let row = 0;
+    const rowH = 24;
+    for (const meta of PLANETAS_META) {
+      const pos = posiciones[meta.id];
+      if (!pos) continue;
+      const { signo, grados, minutos } = gradosAGMSD_local(pos.lon);
+      const y = tableTop + 56 + row * rowH;
+
+      if (row % 2 === 0) {
+        ctx.fillStyle = 'rgba(196,168,212,0.12)';
+        ctx.fillRect(56, y-14, W-112, rowH-2);
+      }
+
+      ctx.fillStyle = pos.retro ? '#c0392b' : '#1a1a3e';
+      ctx.font = '15px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(meta.glifo, cols[0], y);
+
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#1a1a3e';
+      ctx.fillText(meta.nombre, cols[1], y);
+
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText(grados + ' ' + minutos + "'", cols[2], y);
+
+      ctx.font = '12px sans-serif';
+      ctx.fillStyle = '#7b5ea7';
+      ctx.fillText(SIGNOS[signo].glifo + ' ' + SIGNOS[signo].nombre, cols[3], y);
+
+      ctx.fillStyle = '#1a1a3e';
+      const casaN = ['asc','mc','nodo_s'].includes(meta.id) ? '-' : String(pos.casa);
+      ctx.fillText(casaN, cols[4], y);
+
+      ctx.fillStyle = '#c0392b';
+      ctx.fillText(pos.retro ? 'R' : '', cols[5], y);
+
+      ctx.fillStyle = '#888';
+      ctx.font = '10px monospace';
+      ctx.fillText(mod360(pos.lon).toFixed(2) + 'deg', cols[6], y);
+
+      row++;
+    }
+
+    // ── ASPECTARIO ──
+    const aspTop = tableTop + 56 + row * rowH + 28;
+
+    // Línea separadora
+    ctx.strokeStyle = '#c4a8d4'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(60, aspTop - 12); ctx.lineTo(W-60, aspTop - 12); ctx.stroke();
+
+    ctx.fillStyle = '#1a1a3e';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('ASPECTARIO', 60, aspTop);
+
+    const aspList = cartaActual.aspectos.lista;
+    const aspRowH = 22;
+    const COL_ASP = {
+      'Conjuncion': '#b8960a', 'Conjunción': '#b8960a',
+      'Sextil': '#1a64c8', 'Cuadrado': '#c00000',
+      'Trigono': '#0a8a4a', 'Trígono': '#0a8a4a',
+      'Oposicion': '#c00000', 'Oposición': '#c00000',
+      'Quincuncio': '#7050c0'
+    };
+
+    // Dos columnas de aspectos
+    const aspColW = (W - 120) / 2;
+    let aspRow = 0;
+    for (const asp of aspList) {
+      const meta1 = PLANETAS_META.find(m => m.id === asp.p1);
+      const meta2 = PLANETAS_META.find(m => m.id === asp.p2);
+      if (!meta1 || !meta2) continue;
+
+      const col  = aspRow % 2 === 0 ? 60 : 60 + aspColW + 20;
+      const fila = Math.floor(aspRow / 2);
+      const y    = aspTop + 18 + fila * aspRowH;
+
+      if (aspRow % 4 < 2) {
+        ctx.fillStyle = 'rgba(196,168,212,0.10)';
+        ctx.fillRect(col - 4, y - 14, aspColW, aspRowH - 2);
+      }
+
+      const aspColor = COL_ASP[asp.aspecto.nombre] || '#555';
+
+      ctx.font = '14px serif';
+      ctx.fillStyle = '#1a1a3e';
+      ctx.textAlign = 'left';
+      ctx.fillText(meta1.glifo, col, y);
+
+      ctx.font = '11px sans-serif';
+      ctx.fillText(meta1.nombre, col + 18, y);
+
+      ctx.font = 'bold 13px serif';
+      ctx.fillStyle = aspColor;
+      ctx.fillText(asp.aspecto.glifo, col + 18 + 65, y);
+
+      ctx.font = '11px sans-serif';
+      ctx.fillStyle = aspColor;
+      ctx.fillText(asp.aspecto.nombre, col + 18 + 80, y);
+
+      ctx.font = '14px serif';
+      ctx.fillStyle = '#1a1a3e';
+      ctx.fillText(meta2.glifo, col + 18 + 160, y);
+
+      ctx.font = '11px sans-serif';
+      ctx.fillText(meta2.nombre, col + 18 + 178, y);
+
+      ctx.fillStyle = '#888';
+      ctx.font = '10px monospace';
+      const orbeStr = '(' + asp.aspecto.orbe_real + '°)';
+      ctx.fillText(orbeStr, col + 18 + 178 + 70, y);
+
+      aspRow++;
+    }
+
+    const filas = Math.ceil(aspList.length / 2);
+
+    // Firma
+    const footY = aspTop + 20 + filas * aspRowH + 24;
+    ctx.strokeStyle = '#c9a84c'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(80, footY); ctx.lineTo(W-80, footY); ctx.stroke();
+    ctx.fillStyle = '#c9a84c';
+    ctx.font = 'italic 11px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('octavocielo.com.ar  *  @octavocielook  *  Donde el alma se alinea con el cosmos', W/2, footY+16);
+
+    // Canvas recortado a la altura real
+    const finalH = footY + 40;
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = W; finalCanvas.height = finalH;
+    finalCanvas.getContext('2d').drawImage(canvas, 0, 0);
+
+    const link = document.createElement('a');
+    link.download = 'carta-natal-' + (nombre || 'consultante').toLowerCase().replace(/\s+/g,'-') + '.png';
+    link.href = finalCanvas.toDataURL('image/png');
+    link.click();
+  };
+  img.src = url;
+}
+
+// COMPARTIR
+async function compartirCarta() {
+  const nombre = document.getElementById('nombre').value.trim() || 'mi';
+  const texto  = 'Calcule mi carta natal con Octavo Cielo. ' + window.location.href;
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Mi Carta Natal - Octavo Cielo', text: texto, url: window.location.href }); } catch(e) {}
+  } else {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      alert('Link copiado al portapapeles!');
+    }).catch(() => {
+      alert('Comparti este link: ' + window.location.href);
+    });
+  }
+}
+</script>
+</body>
+</html>

@@ -145,7 +145,7 @@ section{position:relative;z-index:1;}
 
 
 /* ORÁCULO */
-#oraculo{padding:8rem 4rem;max-width:900px;margin:0 auto;text-align:center;}
+#oraculo,#carta-natal{padding:8rem 4rem;max-width:900px;margin:0 auto;text-align:center;}
 .oraculo-card{background:linear-gradient(135deg,rgba(107,91,158,.18),rgba(13,13,26,.9));border:1px solid rgba(196,181,232,.2);border-radius:2px;padding:3.5rem;position:relative;overflow:hidden;}
 .oraculo-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--gold),transparent);}
 .oraculo-pregunta{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.6rem;font-style:italic;font-weight:300;color:var(--white);line-height:1.4;margin-bottom:1.8rem;}
@@ -154,7 +154,7 @@ section{position:relative;z-index:1;}
 .oraculo-chips{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;margin:1.8rem 0;}
 .oraculo-chip{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--lavender);border:1px solid rgba(196,181,232,.2);padding:.35rem .9rem;border-radius:1px;font-weight:300;}
 .oraculo-free{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.1rem;font-style:italic;color:var(--gold);margin-bottom:1.8rem;display:block;}
-@media(max-width:768px){#oraculo{padding:5rem 1.5rem;}.oraculo-card{padding:2.5rem 1.5rem;}.oraculo-pregunta{font-size:1.3rem;}}
+@media(max-width:768px){#oraculo,#carta-natal{padding:5rem 1.5rem;}.oraculo-card{padding:2.5rem 1.5rem;}.oraculo-pregunta{font-size:1.3rem;}}
 
 /* LUNAR */
 #lunar{padding:6rem 4rem;max-width:900px;margin:0 auto;text-align:center;}
@@ -265,6 +265,7 @@ footer{border-top:1px solid rgba(196,181,232,.1);padding:3rem 4rem;display:flex;
   <a href="#sobre-mi">Sobre mí</a>
   <a href="#servicios">Servicios</a>
   <a href="#oraculo">El Oráculo</a>
+  <a href="#carta-natal">Carta Natal</a>
   <a href="#lunar">Meditación lunar</a>
   <a href="#reservar">Reservar</a>
   <a href="#testimonios">Testimonios</a>
@@ -279,6 +280,7 @@ footer{border-top:1px solid rgba(196,181,232,.1);padding:3rem 4rem;display:flex;
     <li><a href="#sobre-mi">Sobre mí</a></li>
     <li><a href="#servicios">Servicios</a></li>
     <li><a href="#oraculo">El Oráculo</a></li>
+    <li><a href="#carta-natal">Carta Natal</a></li>
     <li><a href="#lunar">Meditación lunar</a></li>
     <li><a href="#reservar">Reservar</a></li>
     <li><a href="#contacto">Contacto</a></li>
@@ -493,6 +495,27 @@ footer{border-top:1px solid rgba(196,181,232,.1);padding:3rem 4rem;display:flex;
   </div>
 </section>
 
+<!-- CARTA NATAL -->
+<section id="carta-natal">
+  <div class="section-header fade-up">
+    <span class="section-label">✦ Herramienta gratuita</span>
+    <h2 class="section-title">Calculadora de <em>Carta Natal</em></h2>
+  </div>
+  <div class="oraculo-card fade-up">
+    <p class="oraculo-pregunta">Tu mapa del alma, calculado al instante.</p>
+    <p class="oraculo-desc">Ingresá tu fecha, hora y ciudad de nacimiento y obté tu carta natal completa: <strong>rueda del zodíaco</strong>, posiciones de los 10 planetas más Quirón, casas Placidus, aspectario y distribución de elementos. Los cálculos se hacen directamente en tu dispositivo, sin servidores externos.</p>
+    <div class="oraculo-chips">
+      <span class="oraculo-chip">Rueda completa</span>
+      <span class="oraculo-chip">Casas Placidus</span>
+      <span class="oraculo-chip">10 planetas + Quirón</span>
+      <span class="oraculo-chip">Aspectario</span>
+      <span class="oraculo-chip">Descarga PNG</span>
+    </div>
+    <span class="oraculo-free">✦ Sin registro &middot; Sin límites &middot; Sin costo</span>
+    <a href="carta-natal.html" target="_blank" class="btn-primary">Calcular mi carta natal ✦</a>
+  </div>
+</section>
+
 <!-- MEDITACIÓN LUNAR -->
 <section id="lunar">
   <div class="section-header fade-up">
@@ -626,9 +649,9 @@ footer{border-top:1px solid rgba(196,181,232,.1);padding:3rem 4rem;display:flex;
         <span class="contact-item-icon">📱</span>
         <div><span class="contact-item-label">WhatsApp</span><span class="contact-item-value">Escribime para consultas</span></div>
       </a>
-      <a href="mailto:hola@octavocielo.com.ar" class="contact-item">
+      <a href="mailto:octavocielook@gmail.com" class="contact-item">
         <span class="contact-item-icon">✉️</span>
-        <div><span class="contact-item-label">Email</span><span class="contact-item-value">hola@octavocielo.com.ar</span></div>
+        <div><span class="contact-item-label">Email</span><span class="contact-item-value">octavocielook@gmail.com</span></div>
       </a>
     </div>
     <a href="#reservar" class="btn-primary" style="width:100%;text-align:center;display:block;">Reservar mi sesión ✦</a>
