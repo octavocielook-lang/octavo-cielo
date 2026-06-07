@@ -774,7 +774,7 @@
         <button class="paywall-code-btn" onclick="activarCodigo()">Activar</button>
       </div>
       <div id="codigoError" class="paywall-code-error"></div>
-      <a class="paywall-link" href="https://octavocielo.netlify.app/#servicios" target="_blank">Ver servicios de Octavo Cielo</a>
+      <a class="paywall-link" href="https://octavocielo.com.ar/#servicios" target="_blank">Ver servicios de Octavo Cielo</a>
     </div>
 
     <div class="chat-messages" id="chatMessages">
@@ -852,104 +852,61 @@ function julianDay(date) {
 
 function normalize(deg) { return ((deg % 360) + 360) % 360; }
 
-// Sun position (accurate to ~0.01°)
-function sunLongitude(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  const L0 = normalize(280.46646 + 36000.76983*T);
-  const M = normalize(357.52911 + 35999.05029*T - 0.0001537*T*T) * DEG;
-  const C = (1.914602 - 0.004817*T - 0.000014*T*T)*Math.sin(M)
-           + (0.019993 - 0.000101*T)*Math.sin(2*M)
-           + 0.000289*Math.sin(3*M);
-  return normalize(L0 + C);
+// ── Cálculo geocéntrico por elementos orbitales (Meeus cap. 33) ──
+function mod360(x){return((x%360)+360)%360;}
+function sind(d){return Math.sin(d*DEG);}
+function cosd(d){return Math.cos(d*DEG);}
+function atan2d(y,x){return Math.atan2(y,x)/DEG;}
+
+const ELEM = {
+  tierra:  {L0:100.4664,L1:36000.7698, a:1.000000,e0:0.016709,i0:0.000, Om0:0.000,  w0:102.937},
+  mercurio:{L0:252.2503,L1:149472.6741,a:0.387098,e0:0.205630,i0:7.005, Om0:48.332, w0:77.458},
+  venus:   {L0:181.9798,L1:58517.8157, a:0.723330,e0:0.006773,i0:3.395, Om0:76.681, w0:131.533},
+  marte:   {L0:355.4533,L1:19140.3026, a:1.523688,e0:0.093405,i0:1.850, Om0:49.558, w0:336.041},
+  jupiter: {L0:34.3515, L1:3034.9057,  a:5.202560,e0:0.048498,i0:1.303, Om0:100.464,w0:14.331},
+  saturno: {L0:50.0757, L1:1222.1138,  a:9.554909,e0:0.055509,i0:2.489, Om0:113.666,w0:93.057},
+  urano:   {L0:314.0550,L1:428.4669,   a:19.21814,e0:0.046300,i0:0.773, Om0:74.006, w0:173.005},
+  neptuno: {L0:304.3487,L1:218.4862,   a:30.11209,e0:0.008988,i0:1.770, Om0:131.784,w0:48.124},
+  pluton:  {L0:238.9508,L1:145.2025,   a:39.48168,e0:0.248808,i0:17.14, Om0:110.299,w0:224.068},
+};
+
+function kepler(M, e) {
+  let E = M;
+  for(let i=0;i<50;i++){const d=(M-E+e*sind(E)/DEG)/(1-e*cosd(E));E+=d;if(Math.abs(d)<1e-9)break;}
+  return E;
 }
 
-// Moon position
-function moonLongitude(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  const Lp = normalize(218.3164477 + 481267.88123421*T);
-  const D = normalize(297.8501921 + 445267.1114034*T) * DEG;
-  const M = normalize(357.5291092 + 35999.0502909*T) * DEG;
-  const Mp = normalize(134.9633964 + 477198.8675055*T) * DEG;
-  const F = normalize(93.2720950 + 483202.0175233*T) * DEG;
-  const lon = Lp
-    + 6.288774*Math.sin(Mp)
-    + 1.274027*Math.sin(2*D - Mp)
-    + 0.658314*Math.sin(2*D)
-    + 0.213618*Math.sin(2*Mp)
-    - 0.185116*Math.sin(M)
-    - 0.114332*Math.sin(2*F)
-    + 0.058793*Math.sin(2*D - 2*Mp)
-    + 0.057066*Math.sin(2*D - M - Mp)
-    + 0.053322*Math.sin(2*D + Mp)
-    + 0.045758*Math.sin(2*D - M);
-  return normalize(lon);
+function posHelio(T, el) {
+  const L=mod360(el.L0+el.L1*T), e=el.e0, i=el.i0, Om=mod360(el.Om0), w=mod360(el.w0), a=el.a;
+  const M=mod360(L-w), wb=mod360(w-Om), E=kepler(M,e);
+  const xp=a*(cosd(E)-e), yp=a*Math.sqrt(1-e*e)*sind(E);
+  const cO=cosd(Om),sO=sind(Om),cI=cosd(i),cW=cosd(wb),sW=sind(wb);
+  return {
+    x:(cO*cW-sO*sW*cI)*xp+(-cO*sW-sO*cW*cI)*yp,
+    y:(sO*cW+cO*sW*cI)*xp+(-sO*sW+cO*cW*cI)*yp
+  };
 }
 
-// Moon phase (0=New, 0.5=Full)
-function moonPhase(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  const D = normalize(297.8501921 + 445267.1114034*T) * DEG;
-  const M = normalize(357.5291092 + 35999.0502909*T) * DEG;
-  const Mp = normalize(134.9633964 + 477198.8675055*T) * DEG;
-  let phase = (1 - Math.cos(2*D)) / 2;
-  return phase;
+function planetaGeo(T, id) {
+  const p=posHelio(T,ELEM[id]), t=posHelio(T,ELEM.tierra);
+  return mod360(atan2d(p.y-t.y, p.x-t.x));
 }
 
-// Mercury (simplified VSOP87)
-function mercuryLongitude(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  const L = normalize(252.25032350 + 149472.6741666*T);
-  const M = normalize(174.7947870 + 4.09233445*T * 36000) * DEG;
-  return normalize(L + 1.9 * Math.sin(M * 4.09233445 / 4.09233445));
+function solGeo(T) {
+  const t=posHelio(T,ELEM.tierra);
+  return mod360(atan2d(-t.y,-t.x));
 }
 
-// Venus
-function venusLongitude(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  return normalize(181.97980085 + 58517.8156748*T);
-}
-
-// Mars
-function marsLongitude(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  const L = normalize(355.45332 + 19140.30268*T);
-  const M = normalize(19.373 + 19140.30268*T) * DEG;
-  return normalize(L + 10.691*Math.sin(M) + 0.623*Math.sin(2*M));
-}
-
-// Jupiter
-function jupiterLongitude(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  const L = normalize(34.35151 + 3034.90567*T);
-  const M = normalize(20.9 + 3034.90567*T) * DEG;
-  return normalize(L + 5.555*Math.sin(M) + 0.168*Math.sin(2*M));
-}
-
-// Saturn
-function saturnLongitude(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  const L = normalize(50.07571 + 1222.11379*T);
-  const M = normalize(317.0 + 1222.11379*T) * DEG;
-  return normalize(L + 6.405*Math.sin(M) + 0.317*Math.sin(2*M));
-}
-
-// Uranus
-function uranusLongitude(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  return normalize(314.055005 + 428.4669983*T + 0.02*T*T);
-}
-
-// Neptune
-function neptuneLongitude(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  return normalize(304.348665 + 218.4862002*T);
-}
-
-// Pluto (approximate)
-function plutoLongitude(jd) {
-  const T = (jd - 2451545.0) / 36525;
-  return normalize(238.92881 + 145.9*T);
-}
+// Wrappers jd → mantienen compatibilidad con calculateSky e isRetrograde
+function sunLongitude(jd)     { return solGeo((jd-2451545)/36525); }
+function mercuryLongitude(jd) { return planetaGeo((jd-2451545)/36525,'mercurio'); }
+function venusLongitude(jd)   { return planetaGeo((jd-2451545)/36525,'venus'); }
+function marsLongitude(jd)    { return planetaGeo((jd-2451545)/36525,'marte'); }
+function jupiterLongitude(jd) { return planetaGeo((jd-2451545)/36525,'jupiter'); }
+function saturnLongitude(jd)  { return planetaGeo((jd-2451545)/36525,'saturno'); }
+function uranusLongitude(jd)  { return planetaGeo((jd-2451545)/36525,'urano'); }
+function neptuneLongitude(jd) { return planetaGeo((jd-2451545)/36525,'neptuno'); }
+function plutoLongitude(jd)   { return planetaGeo((jd-2451545)/36525,'pluton'); }
 
 const SIGNS = ['Aries','Tauro','Géminis','Cáncer','Leo','Virgo','Libra','Escorpio','Sagitario','Capricornio','Acuario','Piscis'];
 const SIGN_GLYPHS = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
