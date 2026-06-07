@@ -1306,8 +1306,10 @@ function generarRuedaSVG(carta) {
   // ── Líneas de aspectos ──
   // Solo se dibujan aspectos entre los planetas del aspectario (no fortuna, nodo_s, asc, mc)
   const IDS_RUEDA_ASP = new Set(['sol','luna','mercurio','venus','marte','jupiter','saturno','urano','neptuno','pluton','chiron','nodo_n','lilith']);
+  const ASPECTOS_RUEDA = new Set(['Conjunción','Sextil','Cuadrado','Trígono','Oposición']);
   for (const asp of carta.aspectos.lista) {
     if (!IDS_RUEDA_ASP.has(asp.p1) || !IDS_RUEDA_ASP.has(asp.p2)) continue;
+    if (!ASPECTOS_RUEDA.has(asp.aspecto.nombre)) continue;
     const col = ASP_COLORS[asp.aspecto.nombre]?.line || 'rgba(150,150,150,0.4)';
     const a1  = lonAAngulo(posiciones[asp.p1].lon, ASC);
     const a2  = lonAAngulo(posiciones[asp.p2].lon, ASC);
