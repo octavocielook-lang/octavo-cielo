@@ -1143,9 +1143,10 @@ function calcularCartaNatal(year, month, day, hour, minute, lat, lon) {
     casa: determinarCasa(lonNodoS, casas)
   };
 
-  // Lilith Media (Luna Negra Media)
-  const T_YEARS = (JD - 2451545.0) / 365.25;
-  const lonLilith = mod360(83.3532465 + 40.9002 * T_YEARS);
+  // Lilith Media (Luna Negra Media — apogeo lunar medio)
+  // 83.3532465 + 4069.0137287*T es el PERIGEO; el apogeo (Lilith) está +180°
+  const T_CENTS = (JD - 2451545.0) / 36525;
+  const lonLilith = mod360(83.3532465 + 4069.0137287 * T_CENTS + 180);
   posiciones['lilith'] = {
     lon: lonLilith,
     retro: false,
