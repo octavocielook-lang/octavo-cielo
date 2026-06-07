@@ -907,6 +907,31 @@ function saturnLongitude(jd)  { return planetaGeo((jd-2451545)/36525,'saturno');
 function uranusLongitude(jd)  { return planetaGeo((jd-2451545)/36525,'urano'); }
 function neptuneLongitude(jd) { return planetaGeo((jd-2451545)/36525,'neptuno'); }
 function plutoLongitude(jd)   { return planetaGeo((jd-2451545)/36525,'pluton'); }
+ // Luna (Meeus cap. 47 - geocentrica por definicion)
+function moonLongitude(jd) {
+  const T = (jd - 2451545.0) / 36525;
+  const Lp = normalize(218.3164477 + 481267.88123421*T);
+  const D  = normalize(297.8501921 + 445267.1114034*T) * DEG;
+  const M  = normalize(357.5291092 + 35999.0502909*T)  * DEG;
+  const Mp = normalize(134.9633964 + 477198.8675055*T) * DEG;
+  const F  = normalize(93.2720950  + 483202.0175233*T) * DEG;
+  return normalize(Lp
+    + 6.288774*Math.sin(Mp)
+    + 1.274027*Math.sin(2*D - Mp)
+    + 0.658314*Math.sin(2*D)
+    + 0.213618*Math.sin(2*Mp)
+    - 0.185116*Math.sin(M)
+    - 0.114332*Math.sin(2*F)
+    + 0.058793*Math.sin(2*D - 2*Mp)
+    + 0.057066*Math.sin(2*D - M - Mp)
+    + 0.053322*Math.sin(2*D + Mp)
+    + 0.045758*Math.sin(2*D - M));
+}
+function moonPhase(jd) {
+  const T = (jd - 2451545.0) / 36525;
+  const D = normalize(297.8501921 + 445267.1114034*T) * DEG;
+  return (1 - Math.cos(2*D)) / 2;
+}
 
 const SIGNS = ['Aries','Tauro','Géminis','Cáncer','Leo','Virgo','Libra','Escorpio','Sagitario','Capricornio','Acuario','Piscis'];
 const SIGN_GLYPHS = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
