@@ -735,6 +735,8 @@ const PLANETAS_META = [
   { id: 'chiron',   nombre: 'Quirón',       glifo: '⚷', elemento: null,      modalidad: null       },
   { id: 'nodo_n',   nombre: 'Nodo Norte',   glifo: '☊', elemento: null,      modalidad: null       },
   { id: 'nodo_s',   nombre: 'Nodo Sur',     glifo: '☋', elemento: null,      modalidad: null       },
+  { id: 'lilith',   nombre: 'Lilith Media', glifo: '⚸', elemento: null,      modalidad: null       },
+  { id: 'fortuna',  nombre: 'Parte de Fortuna', glifo: '⊕', elemento: null,  modalidad: null       },
   { id: 'asc',      nombre: 'Ascendente',   glifo: 'AC', elemento: null,     modalidad: null       },
   { id: 'mc',       nombre: 'Medio Cielo',  glifo: 'MC', elemento: null,     modalidad: null       },
 ];
@@ -1141,6 +1143,25 @@ function calcularCartaNatal(year, month, day, hour, minute, lat, lon) {
     casa: determinarCasa(lonNodoS, casas)
   };
 
+  // Lilith Media (Luna Negra Media)
+  const T_YEARS = (JD - 2451545.0) / 365.25;
+  const lonLilith = mod360(83.3532465 + 40.9002 * T_YEARS);
+  posiciones['lilith'] = {
+    lon: lonLilith,
+    retro: false,
+    signo: Math.floor(lonLilith / 30),
+    casa: determinarCasa(lonLilith, casas)
+  };
+
+  // Parte de Fortuna = ASC + Luna − Sol (siempre)
+  const lonFortuna = mod360(ASC + posiciones['luna'].lon - posiciones['sol'].lon);
+  posiciones['fortuna'] = {
+    lon: lonFortuna,
+    retro: false,
+    signo: Math.floor(lonFortuna / 30),
+    casa: determinarCasa(lonFortuna, casas)
+  };
+
   // AC y MC
   posiciones['asc'] = { lon: ASC, retro: false, signo: Math.floor(ASC / 30), casa: 1 };
   posiciones['mc']  = { lon: MC,  retro: false, signo: Math.floor(MC / 30),  casa: 10 };
@@ -1288,8 +1309,8 @@ function generarRuedaSVG(carta) {
     const col = ASP_COLORS[asp.aspecto.nombre]?.line || 'rgba(150,150,150,0.4)';
     const a1  = lonAAngulo(posiciones[asp.p1].lon, ASC);
     const a2  = lonAAngulo(posiciones[asp.p2].lon, ASC);
-    const pa  = polarAXY(a1, R_INT-2, CX, CY);
-    const pb  = polarAXY(a2, R_INT-2, CX, CY);
+    const pa  = polarAXY(a1, R_PLN - 40, CX, CY);
+    const pb  = polarAXY(a2, R_PLN - 40, CX, CY);
     svg += `<line x1="${pa.x.toFixed(1)}" y1="${pa.y.toFixed(1)}" x2="${pb.x.toFixed(1)}" y2="${pb.y.toFixed(1)}" stroke="${col}" stroke-width="0.9"/>`;
   }
 
@@ -1385,7 +1406,7 @@ function renderizarTablaPlanetas(posiciones) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 function renderizarAspectario(posiciones, aspectos) {
-  const ids = ['sol','luna','mercurio','venus','marte','jupiter','saturno','urano','neptuno','pluton','chiron','nodo_n'];
+  const ids = ['sol','luna','mercurio','venus','marte','jupiter','saturno','urano','neptuno','pluton','chiron','nodo_n','lilith'];
   const { tabla } = aspectos;
 
   let html = '<table class="aspectario-tabla"><thead><tr><th></th>';
