@@ -1384,12 +1384,12 @@ async function callClaude(userMessage) {
 
     const data = await response.json();
     // Resetear widget para el próximo mensaje
-    if (_tsWidgetId !== null) { _tsToken = null; turnstile.reset(_tsWidgetId); }
+    if (_tsWidgetId !== null) { _tsToken = null; turnstile.reset('#turnstile-container'); }
     if (data.content && data.content[0]) return data.content[0].text;
     if (data.error) throw new Error(data.error.message || 'Error del servidor');
     throw new Error('Sin respuesta');
   } catch (err) {
-    if (_tsWidgetId !== null) { _tsToken = null; turnstile.reset(_tsWidgetId); }
+    if (_tsWidgetId !== null) { _tsToken = null; turnstile.reset('#turnstile-container'); }
     if (err.name === 'AbortError') throw new Error('timeout');
     throw err;
   } finally {
@@ -1558,6 +1558,7 @@ function onTurnstileLoad() {
   _tsWidgetId = turnstile.render('#turnstile-container', {
     sitekey: '0x4AAAAAADtpl1eBhCH9Ridl',
     size: 'invisible',
+    execution: 'execute',   // esperar llamado manual, no ejecutar al renderizar
     callback: function(token) {
       _tsToken = token;
       if (_tsResolve) { _tsResolve(token); _tsResolve = null; }
@@ -1567,7 +1568,6 @@ function onTurnstileLoad() {
     },
     'expired-callback': function() {
       _tsToken = null;
-      if (_tsWidgetId !== null) turnstile.reset(_tsWidgetId);
     }
   });
 }
@@ -1584,7 +1584,8 @@ function obtenerTokenTurnstile() {
     // Si Turnstile no cargó todavía, continuar sin token (fallback graceful)
     if (_tsWidgetId === null) { resolve(null); return; }
     _tsResolve = resolve;
-    turnstile.execute(_tsWidgetId);
+    // Usar el selector del contenedor, no el widgetId
+    turnstile.execute('#turnstile-container');
   });
 }
 
