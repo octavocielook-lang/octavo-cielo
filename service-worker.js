@@ -1,4 +1,4 @@
-const CACHE = 'octavo-cielo-v4';
+const CACHE = 'octavo-cielo-v6'; // v6: excluye workers.dev del caché
 const ASSETS = [
   '/octavo-cielo-electiva.html',
   '/manifest.json',
@@ -26,7 +26,7 @@ self.addEventListener('activate', e => {
 // Fetch: sirve desde caché si está, si no va a la red
 self.addEventListener('fetch', e => {
   // Las llamadas a la API de Anthropic nunca se cachean
-  if (e.request.url.includes('anthropic.com') || e.request.url.includes('netlify/functions')) {
+  if (e.request.url.includes('anthropic.com') || e.request.url.includes('netlify/functions') || e.request.url.includes('workers.dev') || e.request.url.includes('challenges.cloudflare.com')) {
     return;
   }
   e.respondWith(
