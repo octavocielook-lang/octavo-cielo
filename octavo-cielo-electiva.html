@@ -703,8 +703,10 @@
     .bottom-tab.active .bottom-tab-pip { background: var(--gold); }
   }
 </style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad" async defer></script>
 </head>
 <body>
+<div id="turnstile-container" style="display:none"></div>
 
 <div class="stars" id="stars"></div>
 
@@ -839,82 +841,95 @@
 // ASTRONOMICAL CALCULATIONS (no external dependency)
 // ═══════════════════════════════════════════════
 
-const DEG = Math.PI / 180;
+const RAD = Math.PI / 180;
+const DEG = 180 / Math.PI;
 
 function julianDay(date) {
-  const Y = date.getUTCFullYear(), M = date.getUTCMonth() + 1, D = date.getUTCDate();
+  const Y = date.getUTCFullYear(), Mo = date.getUTCMonth() + 1, D = date.getUTCDate();
   const h = date.getUTCHours() + date.getUTCMinutes()/60 + date.getUTCSeconds()/3600;
   let JD;
-  if (M <= 2) { JD = Math.floor(365.25*(Y-1)) + Math.floor(30.6001*13) + D + h/24 + 1720981.5; }
-  else { JD = Math.floor(365.25*Y) + Math.floor(30.6001*(M+1)) + D + h/24 + 1720981.5; }
+  if (Mo <= 2) { JD = Math.floor(365.25*(Y-1)) + Math.floor(30.6001*13) + D + h/24 + 1720981.5; }
+  else { JD = Math.floor(365.25*Y) + Math.floor(30.6001*(Mo+1)) + D + h/24 + 1720981.5; }
   return JD;
 }
 
 function normalize(deg) { return ((deg % 360) + 360) % 360; }
+function sind(d) { return Math.sin(d * RAD); }
+function cosd(d) { return Math.cos(d * RAD); }
+function atan2d(y, x) { return Math.atan2(y, x) * DEG; }
 
-// ── Cálculo geocéntrico por elementos orbitales (Meeus cap. 33) ──
-function mod360(x){return((x%360)+360)%360;}
-function sind(d){return Math.sin(d*DEG);}
-function cosd(d){return Math.cos(d*DEG);}
-function atan2d(y,x){return Math.atan2(y,x)/DEG;}
-
+// Elementos orbitales (Meeus cap. 33) - T en siglos julianos desde J2000
 const ELEM = {
-  tierra:  {L0:100.4664,L1:36000.7698, a:1.000000,e0:0.016709,i0:0.000, Om0:0.000,  w0:102.937},
-  mercurio:{L0:252.2503,L1:149472.6741,a:0.387098,e0:0.205630,i0:7.005, Om0:48.332, w0:77.458},
-  venus:   {L0:181.9798,L1:58517.8157, a:0.723330,e0:0.006773,i0:3.395, Om0:76.681, w0:131.533},
-  marte:   {L0:355.4533,L1:19140.3026, a:1.523688,e0:0.093405,i0:1.850, Om0:49.558, w0:336.041},
-  jupiter: {L0:34.3515, L1:3034.9057,  a:5.202560,e0:0.048498,i0:1.303, Om0:100.464,w0:14.331},
-  saturno: {L0:50.0757, L1:1222.1138,  a:9.554909,e0:0.055509,i0:2.489, Om0:113.666,w0:93.057},
-  urano:   {L0:314.0550,L1:428.4669,   a:19.21814,e0:0.046300,i0:0.773, Om0:74.006, w0:173.005},
-  neptuno: {L0:304.3487,L1:218.4862,   a:30.11209,e0:0.008988,i0:1.770, Om0:131.784,w0:48.124},
-  pluton:  {L0:238.9508,L1:145.2025,   a:39.48168,e0:0.248808,i0:17.14, Om0:110.299,w0:224.068},
+  tierra:  {L0:100.4664,L1:36000.7698, a:1.000000,e0:0.016709,e1:-0.000042,i0:0.000,i1:0,      Om0:0.000,  Om1:0,      w0:102.937,w1:0.3225},
+  mercury: {L0:252.2503,L1:149472.6741,a:0.387098,e0:0.205630,e1:0.000020, i0:7.005,i1:-0.0059, Om0:48.332, Om1:-0.1241,w0:77.458, w1:0.1586},
+  venus:   {L0:181.9798,L1:58517.8157, a:0.723330,e0:0.006773,e1:-0.000048,i0:3.395,i1:-0.0085, Om0:76.681, Om1:-0.2785,w0:131.533,w1:0.0481},
+  mars:    {L0:355.4533,L1:19140.3026, a:1.523688,e0:0.093405,e1:0.000092, i0:1.850,i1:-0.0081, Om0:49.558, Om1:-0.2953,w0:336.041,w1:0.4444},
+  jupiter: {L0:34.3515, L1:3034.9057,  a:5.202560,e0:0.048498,e1:0.000163, i0:1.303,i1:-0.0056, Om0:100.464,Om1:0.1663, w0:14.331, w1:0.2159},
+  saturn:  {L0:50.0757, L1:1222.1138,  a:9.554909,e0:0.055509,e1:-0.000347,i0:2.489,i1:0.0003,  Om0:113.666,Om1:-0.2352,w0:93.057, w1:0.5661},
+  uranus:  {L0:314.0550,L1:428.4669,   a:19.21814,e0:0.046300,e1:-0.000026,i0:0.773,i1:0.0003,  Om0:74.006, Om1:0.0726, w0:173.005,w1:0.0931},
+  neptune: {L0:304.3487,L1:218.4862,   a:30.11209,e0:0.008988,e1:0.000006, i0:1.770,i1:-0.0028, Om0:131.784,Om1:-0.0056,w0:48.124, w1:0.0323},
+  pluto:   {L0:238.9508,L1:145.2025,   a:39.48168,e0:0.248808,e1:0,        i0:17.14,i1:0,        Om0:110.299,Om1:0,      w0:224.068,w1:0},
 };
 
-function kepler(M, e) {
+function keplerSolve(M, e) {
   let E = M;
-  for(let i=0;i<50;i++){const d=(M-E+e*sind(E)/DEG)/(1-e*cosd(E));E+=d;if(Math.abs(d)<1e-9)break;}
+  for (let i = 0; i < 50; i++) {
+    const dE = (M - E + e * sind(E) / RAD) / (1 - e * cosd(E));
+    E += dE;
+    if (Math.abs(dE) < 1e-9) break;
+  }
   return E;
 }
 
 function posHelio(T, el) {
-  const L=mod360(el.L0+el.L1*T), e=el.e0, i=el.i0, Om=mod360(el.Om0), w=mod360(el.w0), a=el.a;
-  const M=mod360(L-w), wb=mod360(w-Om), E=kepler(M,e);
-  const xp=a*(cosd(E)-e), yp=a*Math.sqrt(1-e*e)*sind(E);
-  const cO=cosd(Om),sO=sind(Om),cI=cosd(i),cW=cosd(wb),sW=sind(wb);
+  const L = normalize(el.L0 + el.L1*T);
+  const e = el.e0 + el.e1*T;
+  const i = el.i0 + el.i1*T;
+  const Om = normalize(el.Om0 + el.Om1*T);
+  const w = normalize(el.w0 + el.w1*T);
+  const a = el.a;
+  const M = normalize(L - w);
+  const wb = normalize(w - Om);
+  const E = keplerSolve(M, e);
+  const xp = a * (cosd(E) - e);
+  const yp = a * Math.sqrt(1 - e*e) * sind(E);
+  const cO = cosd(Om), sO = sind(Om), cI = cosd(i), cW = cosd(wb), sW = sind(wb);
   return {
-    x:(cO*cW-sO*sW*cI)*xp+(-cO*sW-sO*cW*cI)*yp,
-    y:(sO*cW+cO*sW*cI)*xp+(-sO*sW+cO*cW*cI)*yp
+    x: (cO*cW - sO*sW*cI)*xp + (-cO*sW - sO*cW*cI)*yp,
+    y: (sO*cW + cO*sW*cI)*xp + (-sO*sW + cO*cW*cI)*yp
   };
 }
 
-function planetaGeo(T, id) {
-  const p=posHelio(T,ELEM[id]), t=posHelio(T,ELEM.tierra);
-  return mod360(atan2d(p.y-t.y, p.x-t.x));
+function geoLon(T, id) {
+  const p = posHelio(T, ELEM[id]);
+  const t = posHelio(T, ELEM.tierra);
+  return normalize(atan2d(p.y - t.y, p.x - t.x));
 }
 
-function solGeo(T) {
-  const t=posHelio(T,ELEM.tierra);
-  return mod360(atan2d(-t.y,-t.x));
+// Funciones publicas (misma firma que antes)
+function sunLongitude(jd) {
+  const T = (jd - 2451545.0) / 36525;
+  const t = posHelio(T, ELEM.tierra);
+  return normalize(atan2d(-t.y, -t.x));
 }
 
-// Wrappers jd → mantienen compatibilidad con calculateSky e isRetrograde
-function sunLongitude(jd)     { return solGeo((jd-2451545)/36525); }
-function mercuryLongitude(jd) { return planetaGeo((jd-2451545)/36525,'mercurio'); }
-function venusLongitude(jd)   { return planetaGeo((jd-2451545)/36525,'venus'); }
-function marsLongitude(jd)    { return planetaGeo((jd-2451545)/36525,'marte'); }
-function jupiterLongitude(jd) { return planetaGeo((jd-2451545)/36525,'jupiter'); }
-function saturnLongitude(jd)  { return planetaGeo((jd-2451545)/36525,'saturno'); }
-function uranusLongitude(jd)  { return planetaGeo((jd-2451545)/36525,'urano'); }
-function neptuneLongitude(jd) { return planetaGeo((jd-2451545)/36525,'neptuno'); }
-function plutoLongitude(jd)   { return planetaGeo((jd-2451545)/36525,'pluton'); }
- // Luna (Meeus cap. 47 - geocentrica por definicion)
+function mercuryLongitude(jd) { return geoLon((jd-2451545.0)/36525, 'mercury'); }
+function venusLongitude(jd)   { return geoLon((jd-2451545.0)/36525, 'venus');   }
+function marsLongitude(jd)    { return geoLon((jd-2451545.0)/36525, 'mars');    }
+function jupiterLongitude(jd) { return geoLon((jd-2451545.0)/36525, 'jupiter'); }
+function saturnLongitude(jd)  { return geoLon((jd-2451545.0)/36525, 'saturn');  }
+function uranusLongitude(jd)  { return geoLon((jd-2451545.0)/36525, 'uranus');  }
+function neptuneLongitude(jd) { return geoLon((jd-2451545.0)/36525, 'neptune'); }
+function plutoLongitude(jd)   { return geoLon((jd-2451545.0)/36525, 'pluto');   }
+
+// Luna (Meeus cap. 47 - ya es geocentrica)
 function moonLongitude(jd) {
   const T = (jd - 2451545.0) / 36525;
   const Lp = normalize(218.3164477 + 481267.88123421*T);
-  const D  = normalize(297.8501921 + 445267.1114034*T) * DEG;
-  const M  = normalize(357.5291092 + 35999.0502909*T)  * DEG;
-  const Mp = normalize(134.9633964 + 477198.8675055*T) * DEG;
-  const F  = normalize(93.2720950  + 483202.0175233*T) * DEG;
+  const D  = normalize(297.8501921 + 445267.1114034*T) * RAD;
+  const M  = normalize(357.5291092 + 35999.0502909*T)  * RAD;
+  const Mp = normalize(134.9633964 + 477198.8675055*T) * RAD;
+  const F  = normalize(93.2720950  + 483202.0175233*T) * RAD;
   return normalize(Lp
     + 6.288774*Math.sin(Mp)
     + 1.274027*Math.sin(2*D - Mp)
@@ -927,9 +942,10 @@ function moonLongitude(jd) {
     + 0.053322*Math.sin(2*D + Mp)
     + 0.045758*Math.sin(2*D - M));
 }
+
 function moonPhase(jd) {
   const T = (jd - 2451545.0) / 36525;
-  const D = normalize(297.8501921 + 445267.1114034*T) * DEG;
+  const D = normalize(297.8501921 + 445267.1114034*T) * RAD;
   return (1 - Math.cos(2*D)) / 2;
 }
 
@@ -994,25 +1010,52 @@ let generalScore = null;
 // ═══════════════════════════════════════════════
 
 // CODIGO DE ACCESO SUSCRIPTORAS
-const CODIGO_VALIDO = 'ORACULO2026'; // Cambialo cada mes desde GitHub
+// El código nunca vive en el cliente. Se valida en el servidor y se
+// almacena un token HMAC mensual. Ver: netlify/functions/verify-code.js
 const STORAGE_KEY_SUB = 'oc_suscripta';
+const STORAGE_KEY_TOKEN = 'oc_access_token';
 
 function isSubscribed() {
-  return localStorage.getItem(STORAGE_KEY_SUB) === '1';
+  return !!localStorage.getItem(STORAGE_KEY_TOKEN);
 }
 
-function activarCodigo() {
+async function activarCodigo() {
   const input = document.getElementById('codigoInput').value.trim().toUpperCase();
   const errorEl = document.getElementById('codigoError');
-if (input === CODIGO_VALIDO) {
-    localStorage.setItem(STORAGE_KEY_SUB, '1');
-    document.getElementById('paywall').classList.remove('show');
-    document.getElementById('sendBtn').disabled = false;
-    document.getElementById('chatInput').disabled = false;
-    document.querySelectorAll('.quick-btn').forEach(b => b.disabled = false);
-    errorEl.textContent = '';
-  } else {
-    errorEl.textContent = 'Código incorrecto. Revisá el email que recibiste al suscribirte.';
+  const btn = document.querySelector('.paywall-code-btn');
+
+  if (!input) {
+    errorEl.textContent = 'Ingresá tu código de acceso.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  errorEl.textContent = '';
+
+  try {
+    const res = await fetch('/.netlify/functions/verify-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: input })
+    });
+
+    const data = await res.json();
+
+    if (data.valid && data.token) {
+      localStorage.setItem(STORAGE_KEY_TOKEN, data.token);
+      localStorage.removeItem(STORAGE_KEY_SUB); // limpiar flag viejo
+      document.getElementById('paywall').classList.remove('show');
+      document.getElementById('sendBtn').disabled = false;
+      errorEl.textContent = '';
+    } else {
+      errorEl.textContent = 'Código incorrecto. Revisá el email que recibiste al suscribirte.';
+    }
+  } catch {
+    errorEl.textContent = 'Error de conexión. Intentá de nuevo.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Activar';
   }
 }
 
@@ -1072,6 +1115,7 @@ function renderCounter() {
     dots.innerHTML = Array.from({length: LIMIT}, (_, i) =>
       `<div class="consultas-dot${i < used ? ' used' : ''}"></div>`
     ).join('');
+    if (used >= LIMIT) showPaywall();
   }
 }
 
@@ -1085,8 +1129,9 @@ function showSubLimitMsg() {
   document.getElementById('sendBtn').disabled = true;
   document.querySelectorAll('.quick-btn').forEach(b => b.disabled = true);
   // Mostrar mensaje en el chat
- addMessage('ai', `🌙 Llegaste a tus 100 consultas de este mes. Tus créditos se renuevan automáticamente el ${renewal}. ¡Hasta entonces, que los astros te guíen!`);
+  addMessage('ai', `🌙 Llegaste a tus 100 consultas de este mes. Tus créditos se renuevan automáticamente el ${renewal}. ¡Hasta entonces, que los astros te guíen!`);
 }
+
 function showPaywall() {
   document.getElementById('paywall').classList.add('show');
   document.getElementById('chatInput').disabled = true;
@@ -1310,13 +1355,17 @@ async function callClaude(userMessage) {
     role: m.role === 'ai' ? 'assistant' : 'user',
     content: m.content
   }));
+
   conversationMessages.push({
     role: 'user',
     content: `${skyCtx}\n\nPREGUNTA DEL USUARIO: ${userMessage}`
   });
 
+  // Obtener token Turnstile antes de la llamada
+  const tsToken = await obtenerTokenTurnstile();
+
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 segundos máximo
 
   try {
     const response = await fetch('https://cold-meadow-e6e4.octavocielook.workers.dev/', {
@@ -1327,15 +1376,20 @@ async function callClaude(userMessage) {
         max_tokens: 1000,
         system: buildSystemPrompt(),
         messages: conversationMessages,
-        accessCode: isSubscribed() ? CODIGO_VALIDO : ''
+        accessCode: isSubscribed() ? (localStorage.getItem(STORAGE_KEY_TOKEN) || '') : '',
+        turnstileToken: tsToken || ''
       }),
       signal: controller.signal
     });
+
     const data = await response.json();
+    // Resetear widget para el próximo mensaje
+    if (_tsWidgetId !== null) { _tsToken = null; turnstile.reset(_tsWidgetId); }
     if (data.content && data.content[0]) return data.content[0].text;
     if (data.error) throw new Error(data.error.message || 'Error del servidor');
     throw new Error('Sin respuesta');
   } catch (err) {
+    if (_tsWidgetId !== null) { _tsToken = null; turnstile.reset(_tsWidgetId); }
     if (err.name === 'AbortError') throw new Error('timeout');
     throw err;
   } finally {
@@ -1421,10 +1475,10 @@ async function sendMessage() {
         ).join('');
       }
     }
- } catch (err) {
+  } catch (err) {
     removeTyping();
     const errMsg = err.message === 'timeout'
-      ? 'La consulta tardó demasiado. Revisá tu conexión e intentá de nuevo. 🌙'
+      ? 'La consulta tardó demasiado en responder. Revisá tu conexión e intentá de nuevo. 🌙'
       : 'Las estrellas están en silencio por un momento. Por favor, intentá de nuevo. 🌙';
     addMessage('ai', errMsg);
   }
@@ -1493,15 +1547,57 @@ function switchTab(tab, btn) {
 }
 
 // ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// CLOUDFLARE TURNSTILE (anti-bots, invisible)
+// ═══════════════════════════════════════════════
+let _tsWidgetId   = null;
+let _tsToken      = null;
+let _tsResolve    = null;
+
+function onTurnstileLoad() {
+  _tsWidgetId = turnstile.render('#turnstile-container', {
+    sitekey: '0x4AAAAAADtpl1eBhCH9Ridl',
+    size: 'invisible',
+    callback: function(token) {
+      _tsToken = token;
+      if (_tsResolve) { _tsResolve(token); _tsResolve = null; }
+    },
+    'error-callback': function() {
+      if (_tsResolve) { _tsResolve(null); _tsResolve = null; }
+    },
+    'expired-callback': function() {
+      _tsToken = null;
+      if (_tsWidgetId !== null) turnstile.reset(_tsWidgetId);
+    }
+  });
+}
+
+function obtenerTokenTurnstile() {
+  return new Promise((resolve) => {
+    // Si ya hay un token válido, usarlo de inmediato
+    if (_tsToken) {
+      const t = _tsToken;
+      _tsToken = null;
+      resolve(t);
+      return;
+    }
+    // Si Turnstile no cargó todavía, continuar sin token (fallback graceful)
+    if (_tsWidgetId === null) { resolve(null); return; }
+    _tsResolve = resolve;
+    turnstile.execute(_tsWidgetId);
+  });
+}
+
+// ═══════════════════════════════════════════════
 // BOOTSTRAP
 // ═══════════════════════════════════════════════
 
-generateStars();
-updateClock();
-setInterval(updateClock, 30000);
-calculateSky();
-setInterval(calculateSky, 5 * 60 * 1000);
-renderCounter();
+try { generateStars(); } catch(e) { console.error('generateStars:', e); }
+try { updateClock(); } catch(e) { console.error('updateClock:', e); }
+setInterval(() => { try { updateClock(); } catch(e) {} }, 30000);
+try { calculateSky(); } catch(e) { console.error('calculateSky:', e); }
+setInterval(() => { try { calculateSky(); } catch(e) {} }, 5 * 60 * 1000);
+try { renderCounter(); } catch(e) { console.error('renderCounter:', e); }
 
 // Registrar Service Worker (PWA)
 if ('serviceWorker' in navigator) {
