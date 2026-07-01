@@ -1361,8 +1361,9 @@ async function callClaude(userMessage) {
     content: `${skyCtx}\n\nPREGUNTA DEL USUARIO: ${userMessage}`
   });
 
-  // Obtener token Turnstile antes de la llamada
-  const tsToken = await obtenerTokenTurnstile();
+  // Obtener token Turnstile antes de la llamada (falla silenciosa si Turnstile no está disponible)
+  let tsToken = null;
+  try { tsToken = await obtenerTokenTurnstile(); } catch(e) { tsToken = null; }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 segundos máximo
@@ -1581,10 +1582,17 @@ function obtenerTokenTurnstile() {
       resolve(t);
       return;
     }
-    // Si Turnstile no cargó todavía, continuar sin token (fallback graceful)
+    // Si Turnstile no cargó todavía, continuar sin token
     if (_tsWidgetId === null) { resolve(null); return; }
-    _tsResolve = resolve;
-    // Usar el selector del contenedor, no el widgetId
+    // Timeout de 3 segundos: si Turnstile no responde, continuar igual
+    const timeout = setTimeout(() => {
+      _tsResolve = null;
+      resolve(null);
+    }, 3000);
+    _tsResolve = (token) => {
+      clearTimeout(timeout);
+      resolve(token);
+    };
     turnstile.execute('#turnstile-container');
   });
 }
