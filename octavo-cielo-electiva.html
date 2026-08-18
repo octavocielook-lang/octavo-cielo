@@ -1423,7 +1423,7 @@ async function callClaude(userMessage) {
   const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos máximo
 
   try {
-    const response = await fetch('https://cold-meadow-e6e4.octavocielook.workers.dev/', {
+    const response = await fetch('https://oraculo.octavocielo.com.ar/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
