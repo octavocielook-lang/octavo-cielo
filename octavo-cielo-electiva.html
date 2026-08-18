@@ -1132,6 +1132,40 @@ function showSubLimitMsg() {
   addMessage('ai', `🌙 Llegaste a tus 100 consultas de este mes. Tus créditos se renuevan automáticamente el ${renewal}. ¡Hasta entonces, que los astros te guíen!`);
 }
 
+// Traduce el código de error del Worker a lo que ve la persona.
+// El límite lo decide el servidor: si responde free_limit, el contador local
+// se sincroniza para que la interfaz refleje el estado real.
+function manejarErrorConsulta(code) {
+  switch (code) {
+    case 'free_limit':
+      localStorage.setItem(STORAGE_KEY, String(FREE_LIMIT));
+      renderCounter();
+      showPaywall();
+      return;
+
+    case 'sub_limit':
+      localStorage.setItem(STORAGE_KEY_SUB_USED, String(SUB_LIMIT));
+      showSubLimitMsg();
+      return;
+
+    case 'turnstile_unavailable':
+    case 'turnstile_failed':
+      addMessage('ai', 'No pudimos verificar tu navegador. Suele pasar con bloqueadores de anuncios o extensiones de privacidad: desactivalos para este sitio, o probá desde otro navegador. 🌙');
+      return;
+
+    case 'timeout':
+      addMessage('ai', 'La consulta tardó demasiado en responder. Revisá tu conexión e intentá de nuevo. 🌙');
+      return;
+
+    case 'kv_unavailable':
+      addMessage('ai', 'El Oráculo está en mantenimiento por unos minutos. Volvé a intentar en un rato. 🌙');
+      return;
+
+    default:
+      addMessage('ai', 'Las estrellas están en silencio por un momento. Por favor, intentá de nuevo. 🌙');
+  }
+}
+
 function showPaywall() {
   document.getElementById('paywall').classList.add('show');
   document.getElementById('chatInput').disabled = true;
@@ -1361,41 +1395,51 @@ async function callClaude(userMessage) {
     content: `${skyCtx}\n\nPREGUNTA DEL USUARIO: ${userMessage}`
   });
 
-  // Obtener token Turnstile antes de la llamada (falla silenciosa si Turnstile no está disponible)
-  let tsToken = null;
-  try { tsToken = await obtenerTokenTurnstile(); } catch(e) { tsToken = null; }
+  // Turnstile es obligatorio del lado del servidor: si no hay token, no se
+  // manda el pedido y se informa la causa real.
+  const tsToken = await obtenerTokenTurnstile();
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 segundos máximo
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos máximo
 
   try {
     const response = await fetch('https://cold-meadow-e6e4.octavocielook.workers.dev/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1000,
-        system: buildSystemPrompt(),
+        // El modelo, el largo y el prompt los fija el Worker.
         messages: conversationMessages,
         accessCode: isSubscribed() ? (localStorage.getItem(STORAGE_KEY_TOKEN) || '') : '',
-        turnstileToken: tsToken || ''
+        turnstileToken: tsToken
       }),
       signal: controller.signal
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
     // Resetear widget para el próximo mensaje
-    if (_tsWidgetId !== null) { _tsToken = null; turnstile.reset('#turnstile-container'); }
+    resetTurnstile();
+
+    if (!response.ok) {
+      // El Worker devuelve un código identificable: free_limit, sub_limit,
+      // turnstile_failed, kv_unavailable, bad_request, internal.
+      throw new Error((data && data.error && data.error.code) || 'server_error');
+    }
+
     if (data.content && data.content[0]) return data.content[0].text;
-    if (data.error) throw new Error(data.error.message || 'Error del servidor');
-    throw new Error('Sin respuesta');
+    throw new Error('server_error');
   } catch (err) {
-    if (_tsWidgetId !== null) { _tsToken = null; turnstile.reset('#turnstile-container'); }
+    resetTurnstile();
     if (err.name === 'AbortError') throw new Error('timeout');
     throw err;
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+function resetTurnstile() {
+  if (_tsWidgetId === null) return;
+  _tsToken = null;
+  try { turnstile.reset('#turnstile-container'); } catch (e) {}
 }
 
 function addMessage(role, content) {
@@ -1478,10 +1522,7 @@ async function sendMessage() {
     }
   } catch (err) {
     removeTyping();
-    const errMsg = err.message === 'timeout'
-      ? 'La consulta tardó demasiado en responder. Revisá tu conexión e intentá de nuevo. 🌙'
-      : 'Las estrellas están en silencio por un momento. Por favor, intentá de nuevo. 🌙';
-    addMessage('ai', errMsg);
+    manejarErrorConsulta(err.message);
   }
 
   isLoading = false;
@@ -1555,45 +1596,75 @@ let _tsWidgetId   = null;
 let _tsToken      = null;
 let _tsResolve    = null;
 
+let _tsReject = null;
+
+// Promesa que se resuelve cuando el widget terminó de inicializarse.
+// El script de Turnstile carga de forma asíncrona, así que las primeras
+// consultas pueden llegar antes de que el widget exista.
+let _tsReadyResolve = null;
+const _tsReady = new Promise(res => { _tsReadyResolve = res; });
+
 function onTurnstileLoad() {
-  _tsWidgetId = turnstile.render('#turnstile-container', {
-    sitekey: '0x4AAAAAADtpl1eBhCH9Ridl',
-    size: 'invisible',
-    execution: 'execute',   // esperar llamado manual, no ejecutar al renderizar
-    callback: function(token) {
-      _tsToken = token;
-      if (_tsResolve) { _tsResolve(token); _tsResolve = null; }
-    },
-    'error-callback': function() {
-      if (_tsResolve) { _tsResolve(null); _tsResolve = null; }
-    },
-    'expired-callback': function() {
-      _tsToken = null;
-    }
-  });
+  try {
+    _tsWidgetId = turnstile.render('#turnstile-container', {
+      sitekey: '0x4AAAAAADtpl1eBhCH9Ridl',
+      size: 'invisible',
+      execution: 'execute',   // esperar llamado manual, no ejecutar al renderizar
+      callback: function(token) {
+        _tsToken = token;
+        if (_tsResolve) { const r = _tsResolve; _tsResolve = null; _tsReject = null; r(token); }
+      },
+      'error-callback': function() {
+        if (_tsReject) { const r = _tsReject; _tsResolve = null; _tsReject = null; r(new Error('turnstile_unavailable')); }
+      },
+      'expired-callback': function() {
+        _tsToken = null;
+      }
+    });
+    if (_tsReadyResolve) { _tsReadyResolve(true); _tsReadyResolve = null; }
+  } catch (e) {
+    if (_tsReadyResolve) { _tsReadyResolve(false); _tsReadyResolve = null; }
+  }
 }
 
-function obtenerTokenTurnstile() {
-  return new Promise((resolve) => {
-    // Si ya hay un token válido, usarlo de inmediato
-    if (_tsToken) {
-      const t = _tsToken;
-      _tsToken = null;
-      resolve(t);
-      return;
-    }
-    // Si Turnstile no cargó todavía, continuar sin token
-    if (_tsWidgetId === null) { resolve(null); return; }
-    // Timeout de 3 segundos: si Turnstile no responde, continuar igual
+// Espera a que el widget esté listo. Si el script de Turnstile está bloqueado
+// por una extensión, onTurnstileLoad nunca corre y esto devuelve false.
+function esperarTurnstileListo(ms = 10000) {
+  return Promise.race([
+    _tsReady,
+    new Promise(res => setTimeout(() => res(false), ms))
+  ]);
+}
+
+// Devuelve un token válido o lanza 'turnstile_unavailable'.
+// Nunca resuelve con null: el servidor exige verificación y seguir sin token
+// solo produce un error genérico confuso para la persona.
+async function obtenerTokenTurnstile() {
+  if (_tsToken) {
+    const t = _tsToken;
+    _tsToken = null;
+    return t;
+  }
+
+  const listo = await esperarTurnstileListo();
+  if (!listo || _tsWidgetId === null) throw new Error('turnstile_unavailable');
+
+  return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
-      _tsResolve = null;
-      resolve(null);
-    }, 3000);
-    _tsResolve = (token) => {
+      _tsResolve = null; _tsReject = null;
+      reject(new Error('turnstile_unavailable'));
+    }, 15000);
+
+    _tsResolve = (token) => { clearTimeout(timeout); resolve(token); };
+    _tsReject  = (err)   => { clearTimeout(timeout); reject(err); };
+
+    try {
+      turnstile.execute('#turnstile-container');
+    } catch (e) {
       clearTimeout(timeout);
-      resolve(token);
-    };
-    turnstile.execute('#turnstile-container');
+      _tsResolve = null; _tsReject = null;
+      reject(new Error('turnstile_unavailable'));
+    }
   });
 }
 
