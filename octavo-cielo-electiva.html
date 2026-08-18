@@ -1115,7 +1115,10 @@ function renderCounter() {
     dots.innerHTML = Array.from({length: LIMIT}, (_, i) =>
       `<div class="consultas-dot${i < used ? ' used' : ''}"></div>`
     ).join('');
-    if (used >= LIMIT) showPaywall();
+    // El paywall NO se muestra acá: si se disparara al renderizar el contador,
+    // taparía la tercera respuesta antes de que la persona pueda leerla.
+    // Aparece recién cuando intenta una consulta más (ver sendMessage).
+    if (used >= LIMIT) mostrarAvisoUltimaConsulta();
   }
 }
 
@@ -1164,6 +1167,23 @@ function manejarErrorConsulta(code) {
     default:
       addMessage('ai', 'Las estrellas están en silencio por un momento. Por favor, intentá de nuevo. 🌙');
   }
+}
+
+// Aviso discreto bajo el chat cuando se agotaron las consultas gratuitas.
+// No bloquea la lectura de la última respuesta ni interrumpe: solo anticipa
+// que la próxima consulta va a requerir suscripción.
+function mostrarAvisoUltimaConsulta() {
+  if (document.getElementById('avisoLimite')) return;
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+
+  const div = document.createElement('div');
+  div.id = 'avisoLimite';
+  div.style.cssText = 'margin:16px auto 8px;max-width:520px;padding:12px 18px;border:1px solid rgba(201,168,76,0.35);border-radius:10px;background:rgba(201,168,76,0.07);text-align:center;font-family:\'Jost\',sans-serif;font-size:12px;line-height:1.6;color:var(--text-dim);letter-spacing:0.3px;';
+  div.innerHTML = '✦ Completaste tus 3 consultas gratuitas. Tomate el tiempo de leer la respuesta: cuando quieras seguir, te muestro las opciones para continuar.';
+
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
 }
 
 function showPaywall() {
@@ -1526,9 +1546,10 @@ async function sendMessage() {
   }
 
   isLoading = false;
-  const belowFreeLimit = !isSubscribed() && getUsed() < FREE_LIMIT;
-  const belowSubLimit = isSubscribed() && getSubUsed() < SUB_LIMIT;
-  if (belowFreeLimit || belowSubLimit) document.getElementById('sendBtn').disabled = false;
+  // El campo queda habilitado aunque se haya alcanzado el límite gratuito:
+  // el paywall aparece cuando la persona intenta la consulta siguiente, no
+  // apenas termina de responder la última.
+  document.getElementById('sendBtn').disabled = false;
 }
 
 function quickPrompt(text) {
